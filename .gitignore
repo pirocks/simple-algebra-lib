@@ -618,7 +618,6 @@ gradle-app.setting
 
 .idea/
 algebrathing.iml
-src/
 /.idea/compiler.xml
 /.idea/misc.xml
 /algebrathing.iml
