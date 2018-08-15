@@ -57,6 +57,12 @@ abstract class RewritingVisitor() {
     }
 
     open fun rewriteVariable(original: Variable): AlgebraFormula {
+        if (original is PatternMember)
+            return rewritePatternMember(original)
+        return original
+    }
+
+    open fun rewritePatternMember(original: PatternMember): AlgebraFormula {
         return original
     }
 

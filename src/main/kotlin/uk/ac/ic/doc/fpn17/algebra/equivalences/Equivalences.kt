@@ -1,8 +1,11 @@
 package uk.ac.ic.doc.fpn17.algebra.equivalences
 
 import uk.ac.ic.doc.fpn17.algebra.AlgebraFormula
+import uk.ac.ic.doc.fpn17.algebra.PatternMember
 import uk.ac.ic.doc.fpn17.algebra.VariableName
 import uk.ac.ic.doc.fpn17.algebra.rewriting.RewritingVisitor
+import uk.ac.ic.doc.fpn17.algebra.rewriting.renameAllVars
+import uk.ac.ic.doc.fpn17.algebra.rewriting.renameVar
 
 /**
  * mostly copy paste from nd-thing logic lib, which will likely be renamed
@@ -43,7 +46,7 @@ abstract class Equivalence : PatternBasedRewriter {
                 return super.rewrite(original)
             }
         }.rewrite(formula)
-        assert(rewritten.sameAs(formula))
+        assert(rewritten == (formula))
         return res
     }
 

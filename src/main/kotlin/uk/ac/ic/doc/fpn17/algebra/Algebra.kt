@@ -1,5 +1,6 @@
 package uk.ac.ic.doc.fpn17.algebra
 
+import uk.ac.ic.doc.fpn17.algebra.equivalences.MatchSubstitutions
 import java.io.Serializable
 import java.util.*
 
@@ -19,11 +20,11 @@ sealed class AlgebraFormula : Serializable {
 
     override fun hashCode(): Int = hashCodeImpl(HashCodeContext())
     abstract fun hashCodeImpl(hashCodeContext: HashCodeContext): Int
-    open fun matches(other: AlgebraFormula): Boolean {
+    open fun matches(other: AlgebraFormula, matchContext: MatchSubstitutions): Boolean {
         if (this.javaClass != other.javaClass) {
             return false
         }
-        return parameters.zip(other.parameters).all { it.first.matches(it.second) }
+        return parameters.zip(other.parameters).all { it.first.matches(it.second, matchContext) }
     }
 }
 
@@ -52,9 +53,20 @@ sealed class BinaryFormula(val left: AlgebraFormula, val right: AlgebraFormula) 
 /**
  * todo add a name index?
  */
-data class VariableName(val name: String, val uuid: UUID = UUID.randomUUID())
+data class VariableName(val name: String = "" + varCounter, val uuid: UUID = UUID.randomUUID()) {
+    companion object {
+        var varCounter = 0
+        fun getAndIncrementCounter(): Int {
+            try {
+                return varCounter
+            } finally {
+                varCounter++
+            }
+        }
+    }
+}
 
-class Variable(val name: VariableName) : AlgebraFormula() {
+open class Variable(open val name: VariableName) : AlgebraFormula() {
     override fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
         if (other !is Variable) return false
         if (name in equalsContext.thisToOtherVariableName.keys) {
@@ -72,6 +84,12 @@ class Variable(val name: VariableName) : AlgebraFormula() {
     override val parameters: Array<AlgebraFormula> = emptyArray()
     override fun toPrefixNotation(): String = name.name
 
+}
+
+class PatternMember(override val name: VariableName) : Variable(name) {
+    override fun matches(other: AlgebraFormula, matchContext: MatchSubstitutions): Boolean {
+        return super.matches(other, matchContext)
+    }
 }
 
 
