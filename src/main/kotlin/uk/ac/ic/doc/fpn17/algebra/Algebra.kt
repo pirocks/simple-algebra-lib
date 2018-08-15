@@ -28,9 +28,9 @@ sealed class AlgebraFormula : Serializable {
     }
 }
 
-class EqualsContext {
+class EqualsContext(
     val thisToOtherVariableName: MutableMap<VariableName, VariableName> = mutableMapOf()
-}
+)
 
 class HashCodeContext {
     val variableToNum: MutableMap<VariableName, Int> = mutableMapOf()
@@ -76,7 +76,7 @@ data class VariableName(val name: String = "" + varCounter, val uuid: UUID = UUI
     }
 }
 
-open class Variable(open val name: VariableName) : AlgebraFormula() {
+open class Variable(open val name: VariableName = VariableName()) : AlgebraFormula() {
     override fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
         if (other !is Variable) return false
         if (name in equalsContext.thisToOtherVariableName.keys) {
@@ -96,10 +96,20 @@ open class Variable(open val name: VariableName) : AlgebraFormula() {
 
 }
 
-class PatternMember(override val name: VariableName) : Variable(name) {
+abstract class PatternMember() : Variable() {
+    override abstract fun matches(other: AlgebraFormula, matchContext: MatchSubstitutions): Boolean
+}
+
+class AllowAllVars() : PatternMember() {
     override fun matches(other: AlgebraFormula, matchContext: MatchSubstitutions): Boolean {
-        return super.matches(other, matchContext)
+        if (this in matchContext.matchedPatterns) {
+            return matchContext.matchedPatterns[this]!!.equalsImpl(other, EqualsContext(matchContext.variableSubstitutions))
+        } else {
+            matchContext.matchedPatterns[this] = other
+            return true
+        }
     }
+
 }
 
 
