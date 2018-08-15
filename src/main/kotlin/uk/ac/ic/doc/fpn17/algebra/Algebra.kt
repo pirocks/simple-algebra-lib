@@ -43,6 +43,16 @@ sealed class Constant : AlgebraFormula() {
     override val parameters: Array<AlgebraFormula> = emptyArray()
 }
 
+open class ArbitraryConstant(val `val`: Double) : Constant() {
+    override fun toPrefixNotation(): String = `val`.toString()
+
+    override fun hashCodeImpl(hashCodeContext: HashCodeContext): Int {
+        return `val`.hashCode()
+    }
+}
+
+class Zero : ArbitraryConstant(0.0)
+
 sealed class BinaryFormula(val left: AlgebraFormula, val right: AlgebraFormula) : AlgebraFormula() {
     abstract val operatorString: String
     override fun toPrefixNotation(): String = """(${operatorString} ${left.toPrefixNotation()} ${right.toPrefixNotation()})"""
