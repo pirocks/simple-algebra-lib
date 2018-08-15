@@ -125,5 +125,8 @@ class NaturalLog(parameter: AlgebraFormula) : UnaryFormula(parameter) {
 
 class Cos(parameter: AlgebraFormula) : UnaryFormula(parameter) {
     override val operatorString: String = "cos"
+}
 
+class UMinus(parameter: AlgebraFormula) : UnaryFormula(parameter) {
+    override val operatorString: String = "-"
 }

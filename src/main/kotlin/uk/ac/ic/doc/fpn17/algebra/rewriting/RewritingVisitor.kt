@@ -41,7 +41,12 @@ abstract class RewritingVisitor() {
         return when (original) {
             is NaturalLog -> rewriteNaturalLog(original)
             is Cos -> rewriteCos(original)
+            is UMinus -> rewriteUMinus(original)
         }
+    }
+
+    private fun rewriteUMinus(original: UMinus): AlgebraFormula {
+        return UMinus(rewrite(original.parameter))
     }
 
     open fun rewriteNaturalLog(original: NaturalLog): AlgebraFormula {
