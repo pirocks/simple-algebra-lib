@@ -26,6 +26,8 @@ sealed class AlgebraFormula : Serializable {
         }
         return parameters.zip(other.parameters).all { it.first.matches(it.second, matchContext) }
     }
+
+    abstract fun eval(): Double
 }
 
 class EqualsContext(
@@ -44,6 +46,8 @@ sealed class Constant : AlgebraFormula() {
 }
 
 open class ArbitraryConstant(val `val`: Double) : Constant() {
+    override fun eval(): Double = `val`
+
     override fun toPrefixNotation(): String = `val`.toString()
 
     override fun hashCodeImpl(hashCodeContext: HashCodeContext): Int {
@@ -78,6 +82,10 @@ data class VariableName(val name: String = "" + varCounter, val uuid: UUID = UUI
 }
 
 open class Variable(open val name: VariableName = VariableName()) : AlgebraFormula() {
+    override fun eval(): Double {
+        TODO()
+    }
+
     override fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
         if (other !is Variable) return false
         if (name in equalsContext.thisToOtherVariableName.keys) {
@@ -115,20 +123,28 @@ class AllowAllVars() : PatternMember() {
 
 
 class Addition(left: AlgebraFormula, right: AlgebraFormula) : BinaryFormula(left, right) {
+    override fun eval(): Double = left.eval() + right.eval()
+
     override val operatorString: String = "+"
 }
 
 class Multiplication(left: AlgebraFormula, right: AlgebraFormula) : BinaryFormula(left, right) {
+    override fun eval(): Double = left.eval() * right.eval()
+
     override val operatorString: String = "*"
 }
 
 class Division(val numerator: AlgebraFormula, val denominator: AlgebraFormula) : BinaryFormula(numerator, denominator) {
+    override fun eval(): Double = numerator.eval() / denominator.eval()
+
     override val operatorString: String = "/"
 
 }
 
 
 class Exponentiation(val base: AlgebraFormula, val exponent: AlgebraFormula) : BinaryFormula(base, exponent) {
+    override fun eval(): Double = Math.exp(Math.log(base.eval()) * exponent.eval())
+
     override val operatorString: String = "^"
 
 }
@@ -141,13 +157,19 @@ sealed class UnaryFormula(val parameter: AlgebraFormula) : AlgebraFormula() {
 }
 
 class NaturalLog(parameter: AlgebraFormula) : UnaryFormula(parameter) {
+    override fun eval(): Double = Math.log(parameter.eval())
+
     override val operatorString: String = "log"
 }
 
 class Cos(parameter: AlgebraFormula) : UnaryFormula(parameter) {
+    override fun eval(): Double = Math.cos(parameter.eval())
+
     override val operatorString: String = "cos"
 }
 
 class UMinus(parameter: AlgebraFormula) : UnaryFormula(parameter) {
+    override fun eval(): Double = -parameter.eval()
+
     override val operatorString: String = "-"
 }
