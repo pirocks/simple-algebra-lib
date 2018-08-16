@@ -68,7 +68,7 @@ class ZeroMultiplication : Equivalence() {
 
     val a = AllowAllVars()
     override val patternFrom: AlgebraFormula = `*`(`0`(), a)
-    override val patternTo: AlgebraFormula = a
+    override val patternTo: AlgebraFormula = `0`()
 }
 
 class MultiplicationAssociativity : Equivalence() {
