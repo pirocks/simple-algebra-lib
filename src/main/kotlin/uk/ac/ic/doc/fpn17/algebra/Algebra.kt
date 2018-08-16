@@ -52,6 +52,7 @@ open class ArbitraryConstant(val `val`: Double) : Constant() {
 }
 
 class Zero : ArbitraryConstant(0.0)
+class One : ArbitraryConstant(1.0)
 
 sealed class BinaryFormula(val left: AlgebraFormula, val right: AlgebraFormula) : AlgebraFormula() {
     abstract val operatorString: String
