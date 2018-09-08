@@ -68,15 +68,12 @@ sealed class BinaryFormula(val left: AlgebraFormula, val right: AlgebraFormula) 
 /**
  * todo add a name index?
  */
-data class VariableName(val name: String = "" + varCounter, val uuid: UUID = UUID.randomUUID()) {
+data class VariableName(val name: String = "" + getAndIncrementCounter(), val uuid: UUID = UUID.randomUUID()) {
     companion object {
         var varCounter = 0
         fun getAndIncrementCounter(): Int {
-            try {
-                return varCounter
-            } finally {
-                varCounter++
-            }
+            varCounter += 1
+            return varCounter
         }
     }
 }
@@ -100,6 +97,15 @@ open class Variable(open val name: VariableName = VariableName()) : AlgebraFormu
         return hashCodeContext.variableToNum.computeIfAbsent(this.name) { hashCodeContext.variableToNum.size }
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (other !is Variable) return false
+        if (other.name != name) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
     override val parameters: Array<AlgebraFormula> = emptyArray()
     override fun toPrefixNotation(): String = name.name
 
