@@ -68,7 +68,7 @@ sealed class BinaryFormula(val left: AlgebraFormula, val right: AlgebraFormula) 
 /**
  * todo add a name index?
  */
-data class VariableName(val name: String = "" + varCounter, val uuid: UUID = UUID.randomUUID()) {
+data class VariableName(val name: String = "" + getAndIncrementCounter(), val uuid: UUID = UUID.randomUUID()) {
     companion object {
         var varCounter = 0
         fun getAndIncrementCounter(): Int {
