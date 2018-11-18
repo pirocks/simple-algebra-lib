@@ -1,11 +1,11 @@
-package uk.ac.ic.doc.fpn17.algebra.equivalences
+package io.github.pirocks.algebra.equivalences
 
-import uk.ac.ic.doc.fpn17.algebra.AlgebraFormula
-import uk.ac.ic.doc.fpn17.algebra.PatternMember
-import uk.ac.ic.doc.fpn17.algebra.VariableName
-import uk.ac.ic.doc.fpn17.algebra.rewriting.RewritingVisitor
-import uk.ac.ic.doc.fpn17.algebra.rewriting.renameAllVars
-import uk.ac.ic.doc.fpn17.algebra.rewriting.renameVar
+import io.github.pirocks.algebra.AlgebraFormula
+import io.github.pirocks.algebra.PatternMember
+import io.github.pirocks.algebra.VariableName
+import io.github.pirocks.algebra.rewriting.RewritingVisitor
+import io.github.pirocks.algebra.rewriting.renameAllVars
+import io.github.pirocks.algebra.rewriting.renameVar
 
 /**
  * mostly copy paste from nd-thing logic lib, which will likely be renamed

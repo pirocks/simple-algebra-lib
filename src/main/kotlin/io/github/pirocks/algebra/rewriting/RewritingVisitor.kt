@@ -1,5 +1,6 @@
-package uk.ac.ic.doc.fpn17.algebra.rewriting
+package io.github.pirocks.algebra.rewriting
 
+import io.github.pirocks.algebra.*
 import uk.ac.ic.doc.fpn17.algebra.*
 
 abstract class RewritingVisitor() {

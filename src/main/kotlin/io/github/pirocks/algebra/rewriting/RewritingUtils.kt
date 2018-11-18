@@ -1,8 +1,8 @@
-package uk.ac.ic.doc.fpn17.algebra.rewriting
+package io.github.pirocks.algebra.rewriting
 
-import uk.ac.ic.doc.fpn17.algebra.AlgebraFormula
-import uk.ac.ic.doc.fpn17.algebra.Variable
-import uk.ac.ic.doc.fpn17.algebra.VariableName
+import io.github.pirocks.algebra.AlgebraFormula
+import io.github.pirocks.algebra.Variable
+import io.github.pirocks.algebra.VariableName
 
 fun renameVar(formula: AlgebraFormula, from: VariableName, to: VariableName): AlgebraFormula {
     return object : RewritingVisitor() {

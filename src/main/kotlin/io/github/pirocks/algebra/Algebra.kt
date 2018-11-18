@@ -1,6 +1,6 @@
-package uk.ac.ic.doc.fpn17.algebra
+package io.github.pirocks.algebra
 
-import uk.ac.ic.doc.fpn17.algebra.equivalences.MatchSubstitutions
+import io.github.pirocks.algebra.equivalences.MatchSubstitutions
 import java.io.Serializable
 import java.util.*
 

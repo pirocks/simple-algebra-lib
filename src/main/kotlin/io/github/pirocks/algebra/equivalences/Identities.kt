@@ -1,5 +1,6 @@
-package uk.ac.ic.doc.fpn17.algebra.equivalences
+package io.github.pirocks.algebra.equivalences
 
+import io.github.pirocks.algebra.*
 import uk.ac.ic.doc.fpn17.algebra.*
 
 private typealias Mul = Multiplication
