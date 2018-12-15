@@ -76,7 +76,7 @@ abstract class Equivalence : PatternBasedRewriter {
                     }
                     return substitution
                 }
-            }.rewrite(patternTo as AlgebraFormula)
+            }.rewrite(patternTo)
         }
 
         var index: Int = 0;
