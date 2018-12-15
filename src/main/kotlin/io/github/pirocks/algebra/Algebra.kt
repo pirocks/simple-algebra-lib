@@ -28,6 +28,9 @@ sealed class AlgebraFormula : Serializable {
     }
 
     abstract fun eval(): Double
+
+    abstract fun toMathML2(): String
+    fun toHtml(): String = ("<math> <mrow>" + toMathML2() + "</mrow> </math>").replace("\\s(?!separators)".toRegex(), "").trim().trimIndent()
 }
 
 internal class EqualsContext(
@@ -46,6 +49,8 @@ sealed class Constant : AlgebraFormula() {
 }
 
 open class ArbitraryConstant(val `val`: Double) : Constant() {
+    override fun toMathML2(): String = """<mn>$`val`</mn>"""
+
     override fun eval(): Double = `val`
 
     override fun toPrefixNotation(): String = `val`.toString()
@@ -63,6 +68,15 @@ sealed class BinaryFormula(val left: AlgebraFormula, val right: AlgebraFormula) 
     override fun toPrefixNotation(): String = """(${operatorString} ${left.toPrefixNotation()} ${right.toPrefixNotation()})"""
     override val parameters: Array<AlgebraFormula> = arrayOf(left, right)
     override fun hashCodeImpl(hashCodeContext: HashCodeContext): Int = operatorString.hashCode() + 101 * left.hashCodeImpl(hashCodeContext) + 31 * right.hashCodeImpl(hashCodeContext)
+    override fun toMathML2(): String = """
+        <mrow>
+        <mfenced separators="">
+        <mrow>${left.toMathML2()}</mrow>
+        <mo>${operatorString}</mo>
+        <mrow>${right.toMathML2()}</mrow>
+        </mfenced>
+        </mrow>
+    """
 }
 
 /**
@@ -79,6 +93,8 @@ data class VariableName(val name: String = "" + getAndIncrementCounter(), val uu
 }
 
 open class Variable(open val name: VariableName = VariableName()) : AlgebraFormula() {
+    override fun toMathML2(): String = """<mi>${name.name}</mi>"""
+
     override fun eval(): Double {
         TODO()
     }
@@ -142,9 +158,15 @@ class Multiplication(left: AlgebraFormula, right: AlgebraFormula) : BinaryFormul
 
 class Division(val numerator: AlgebraFormula, val denominator: AlgebraFormula) : BinaryFormula(numerator, denominator) {
     override fun eval(): Double = numerator.eval() / denominator.eval()
-
     override val operatorString: String = "/"
-
+    override fun toMathML2(): String = """
+        <mrow>
+        <mfrac>
+        <mrow>${numerator.toMathML2()}</mrow>
+        <mrow>${denominator.toMathML2()}</mrow>
+        </mfrac>
+        </mrow>
+    """
 }
 
 
@@ -159,6 +181,15 @@ sealed class UnaryFormula(val parameter: AlgebraFormula) : AlgebraFormula() {
     override val parameters: Array<AlgebraFormula> = arrayOf(parameter)
     abstract val operatorString: String
     override fun toPrefixNotation(): String = """(${operatorString} ${parameter.toPrefixNotation()})"""
+    override fun toMathML2(): String ="""
+        <mrow>
+        <mfenced separators="">
+        <mi>${operatorString}</mi>
+        <mo> &ApplyFunction; </mo>
+        <mrow>${parameter.toMathML2()}</mrow>
+        </mfenced>
+        </mrow>
+    """
     override fun hashCodeImpl(hashCodeContext: HashCodeContext): Int = operatorString.hashCode() + 31 * parameter.hashCodeImpl(hashCodeContext)
 }
 
