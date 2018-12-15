@@ -6,7 +6,7 @@
 
     <groupId>uk.ac.ic.doc.fpn17</groupId>
     <artifactId>algebra-thing</artifactId>
-    <version>0.0.4-SNAPSHOT</version>
+    <version>0.0.4</version>
 
     <properties>
         <kotlin.version>1.2.70</kotlin.version>
