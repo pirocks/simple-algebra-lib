@@ -1,5 +1,5 @@
 # simple-algebra-lib
-A simple algebra library. Currently a work in progress. Jars on Maven central should be useable.
+A simple algebra library. Currently a work in progress. Jars on Maven central should be working/useable.
 
 Current features include:
 - Outputting to mathml/html forms of expressions
