@@ -3,22 +3,58 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <name>A Simple Algebra Library</name>
+    <description>A simple library for working with algebraic expressions</description>
+    <url>https://github.com/pirocks/simple-algebra-lib</url>
+    <scm>
+        <url>https://github.com/pirocks/simple-algebra-lib.git</url>
+    </scm>
+    <developers>
+        <developer>
+            <name>Francis Nixon</name>
+            <email>13nixonf at gmail</email>
+        </developer>
+    </developers>
 
-    <groupId>uk.ac.ic.doc.fpn17</groupId>
-    <artifactId>algebra-thing</artifactId>
+    <groupId>io.github.pirocks</groupId>
+    <artifactId>simple-algebra-lib</artifactId>
     <version>0.0.4</version>
 
     <properties>
-        <kotlin.version>1.2.70</kotlin.version>
+        <kotlin.version>1.3.11</kotlin.version>
+        <dokka.version>0.9.17</dokka.version>
     </properties>
 
-    <repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jcenter</id>
+            <name>JCenter</name>
+            <url>https://jcenter.bintray.com/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>ossrh</id>
+            <name>snapshots repo</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
         <repository>
-            <id>project.local</id>
-            <name>project</name>
-            <url>file:/mnt/harddrive1/maven-repo/</url>
+            <uniqueVersion>false</uniqueVersion>
+            <id>ossrh</id>
+            <name>release repo</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
-    </repositories>
+    </distributionManagement>
+
+    <!--<repositories>-->
+        <!--<repository>-->
+            <!--<id>project.local</id>-->
+            <!--<name>project</name>-->
+            <!--<url>file:/mnt/harddrive1/maven-repo/</url>-->
+        <!--</repository>-->
+    <!--</repositories>-->
 
     <dependencies>
         <dependency>
@@ -41,13 +77,45 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jetbrains.dokka</groupId>
+                <artifactId>dokka-maven-plugin</artifactId>
+                <version>${dokka.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <!--<goal>dokka</goal>-->
+                            <goal>javadocJar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputFormat>javadoc</outputFormat>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>3.0.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
-                        <phase>deploy</phase>
-                        <goals><goal>jar-no-fork</goal></goals>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -57,8 +125,9 @@
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
-                        <phase>deploy</phase>
-                        <goals><goal>jar</goal></goals>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -66,14 +135,12 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>2.7</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
                 <executions>
                     <execution>
                         <id>deploy</id>
-                        <phase>deploy</phase>
-                        <goals><goal>deploy</goal></goals>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -115,29 +182,29 @@
                 <executions>
                     <execution>
                         <id>compile</id>
-                        <phase>process-sources</phase>
+                        <phase>compile</phase>
                         <goals>
                             <goal>compile</goal>
                         </goals>
                         <configuration>
                             <sourceDirs>
-                                <source>src/main/java</source>
+                                <!--<source>src/main/java</source>-->
                                 <source>src/main/kotlin</source>
-                                <source>src/main/resources</source>
+                                <!--<source>src/main/resources</source>-->
                             </sourceDirs>
                         </configuration>
                     </execution>
                     <execution>
                         <id>test-compile</id>
-                        <phase>process-test-sources</phase>
+                        <phase>test-compile</phase>
                         <goals>
                             <goal>test-compile</goal>
                         </goals>
                         <configuration>
                             <sourceDirs>
-                                <source>src/test/java</source>
-                                <source>src/test/kotlin</source>
-                                <source>src/test/resources</source>
+                                <!--<source>src/test/java</source>-->
+                                <!--<source>src/test/kotlin</source>-->
+                                <!--<source>src/test/resources</source>-->
                             </sourceDirs>
                         </configuration>
                     </execution>
