@@ -2,6 +2,7 @@ package io.github.pirocks.algebra
 
 import io.github.pirocks.algebra.equivalences.MatchSubstitutions
 import java.io.Serializable
+import java.lang.IllegalArgumentException
 import java.util.*
 
 
@@ -27,7 +28,7 @@ sealed class AlgebraFormula : Serializable {
         return parameters.zip(other.parameters).all { it.first.matches(it.second, matchContext) }
     }
 
-    abstract fun eval(): Double
+    abstract fun eval(variableValues: Map<VariableName, Double>): Double
 
     abstract fun toMathML2(): String
     fun toHtml(): String = ("<math> <mrow>" + toMathML2() + "</mrow> </math>").replace("\\s(?!separators)".toRegex(), "").trim().trimIndent()
@@ -51,7 +52,7 @@ sealed class Constant : AlgebraFormula() {
 open class ArbitraryConstant(val `val`: Double) : Constant() {
     override fun toMathML2(): String = """<mn>$`val`</mn>"""
 
-    override fun eval(): Double = `val`
+    override fun eval(variableValues: Map<VariableName, Double>): Double = `val`
 
     override fun toPrefixNotation(): String = `val`.toString()
 
@@ -95,8 +96,8 @@ data class VariableName(val name: String = "" + getAndIncrementCounter(), val uu
 open class Variable(open val name: VariableName = VariableName()) : AlgebraFormula() {
     override fun toMathML2(): String = """<mi>${name.name}</mi>"""
 
-    override fun eval(): Double {
-        TODO()
+    override fun eval(variableValues: Map<VariableName, Double>): Double {
+        return variableValues[name] ?: throw IllegalArgumentException("Not all variable values where provided")
     }
 
     override fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
@@ -145,19 +146,19 @@ class AllowAllVars : PatternMember() {
 
 
 class Addition(left: AlgebraFormula, right: AlgebraFormula) : BinaryFormula(left, right) {
-    override fun eval(): Double = left.eval() + right.eval()
+    override fun eval(variableValues: Map<VariableName, Double>): Double = left.eval(variableValues) + right.eval(variableValues)
 
     override val operatorString: String = "+"
 }
 
 class Multiplication(left: AlgebraFormula, right: AlgebraFormula) : BinaryFormula(left, right) {
-    override fun eval(): Double = left.eval() * right.eval()
+    override fun eval(variableValues: Map<VariableName, Double>): Double = left.eval(variableValues) * right.eval(variableValues)
 
     override val operatorString: String = "*"
 }
 
 class Division(val numerator: AlgebraFormula, val denominator: AlgebraFormula) : BinaryFormula(numerator, denominator) {
-    override fun eval(): Double = numerator.eval() / denominator.eval()
+    override fun eval(variableValues: Map<VariableName, Double>): Double = numerator.eval(variableValues) / denominator.eval(variableValues)
     override val operatorString: String = "/"
     override fun toMathML2(): String = """
         <mrow>
@@ -171,7 +172,7 @@ class Division(val numerator: AlgebraFormula, val denominator: AlgebraFormula) :
 
 
 class Exponentiation(val base: AlgebraFormula, val exponent: AlgebraFormula) : BinaryFormula(base, exponent) {
-    override fun eval(): Double = Math.exp(Math.log(base.eval()) * exponent.eval())
+    override fun eval(variableValues: Map<VariableName, Double>): Double = Math.exp(Math.log(base.eval(variableValues)) * exponent.eval(variableValues))
 
     override val operatorString: String = "^"
 
@@ -194,19 +195,19 @@ sealed class UnaryFormula(val parameter: AlgebraFormula) : AlgebraFormula() {
 }
 
 class NaturalLog(parameter: AlgebraFormula) : UnaryFormula(parameter) {
-    override fun eval(): Double = Math.log(parameter.eval())
+    override fun eval(variableValues: Map<VariableName, Double>): Double = Math.log(parameter.eval(variableValues))
 
     override val operatorString: String = "log"
 }
 
 class Cos(parameter: AlgebraFormula) : UnaryFormula(parameter) {
-    override fun eval(): Double = Math.cos(parameter.eval())
+    override fun eval(variableValues: Map<VariableName, Double>): Double = Math.cos(parameter.eval(variableValues))
 
     override val operatorString: String = "cos"
 }
 
 class UMinus(parameter: AlgebraFormula) : UnaryFormula(parameter) {
-    override fun eval(): Double = -parameter.eval()
+    override fun eval(variableValues: Map<VariableName, Double>): Double = -parameter.eval(variableValues)
 
     override val operatorString: String = "-"
 }
