@@ -13,13 +13,13 @@ sealed class AlgebraFormula : Serializable {
         return equalsImpl(other, EqualsContext())
     }
 
-    open fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
+    internal open fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
         if (this.javaClass != other.javaClass) return false
         return parameters.zip(other.parameters).all { it.first.equalsImpl(it.second, EqualsContext()) }
     }
 
     override fun hashCode(): Int = hashCodeImpl(HashCodeContext())
-    abstract fun hashCodeImpl(hashCodeContext: HashCodeContext): Int
+    internal abstract fun hashCodeImpl(hashCodeContext: HashCodeContext): Int
     open fun matches(other: AlgebraFormula, matchContext: MatchSubstitutions): Boolean {
         if (this.javaClass != other.javaClass) {
             return false
@@ -30,11 +30,11 @@ sealed class AlgebraFormula : Serializable {
     abstract fun eval(): Double
 }
 
-class EqualsContext(
+internal class EqualsContext(
     val thisToOtherVariableName: MutableMap<VariableName, VariableName> = mutableMapOf()
 )
 
-class HashCodeContext {
+internal class HashCodeContext {
     val variableToNum: MutableMap<VariableName, Int> = mutableMapOf()
 }
 
@@ -112,16 +112,16 @@ open class Variable(open val name: VariableName = VariableName()) : AlgebraFormu
 }
 
 abstract class PatternMember() : Variable() {
-    override abstract fun matches(other: AlgebraFormula, matchContext: MatchSubstitutions): Boolean
+    abstract override fun matches(other: AlgebraFormula, matchContext: MatchSubstitutions): Boolean
 }
 
-class AllowAllVars() : PatternMember() {
+class AllowAllVars : PatternMember() {
     override fun matches(other: AlgebraFormula, matchContext: MatchSubstitutions): Boolean {
-        if (this in matchContext.matchedPatterns) {
-            return matchContext.matchedPatterns[this]!!.equalsImpl(other, EqualsContext(matchContext.variableSubstitutions))
+        return if (this in matchContext.matchedPatterns) {
+            matchContext.matchedPatterns[this]!!.equalsImpl(other, EqualsContext(matchContext.variableSubstitutions))
         } else {
             matchContext.matchedPatterns[this] = other
-            return true
+            true
         }
     }
 
