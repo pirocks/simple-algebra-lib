@@ -16,6 +16,14 @@
         </developer>
     </developers>
 
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
     <groupId>io.github.pirocks</groupId>
     <artifactId>simple-algebra-lib</artifactId>
     <version>0.0.4</version>
