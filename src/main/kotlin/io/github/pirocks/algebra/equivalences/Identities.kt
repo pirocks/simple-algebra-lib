@@ -2,15 +2,6 @@ package io.github.pirocks.algebra.equivalences
 
 import io.github.pirocks.algebra.*
 
-private typealias Mul = Multiplication
-private typealias Add = Addition
-private typealias Div = Division
-private typealias `-` = UMinus
-private typealias `+` = Addition
-private typealias `*` = Multiplication
-private typealias `0` = Zero
-private typealias `^` = Exponentiation
-private typealias  `1` = One
 
 val availableIdentities = arrayOf(AMinusA(),
         ZeroAddition(),
@@ -24,12 +15,12 @@ val availableIdentities = arrayOf(AMinusA(),
 class AMinusA : Equivalence() {
     val a = AllowAllVars()
     override val patternFrom: AlgebraFormula = `+`(a, `-`(a))
-    override val patternTo: AlgebraFormula = `0`()
+    override val patternTo: AlgebraFormula = `0`
 }
 
 class ZeroAddition : Equivalence() {
     val a = AllowAllVars()
-    override val patternFrom: AlgebraFormula = `+`(`0`(), a)
+    override val patternFrom: AlgebraFormula = `+`(`0`, a)
     override val patternTo: AlgebraFormula = a
 }
 
@@ -60,15 +51,15 @@ class MultiplicationCommutativity : Equivalence() {
 
 class OneMultiplication : Equivalence() {
     val a = AllowAllVars()
-    override val patternFrom: AlgebraFormula = `*`(`1`(), a)
+    override val patternFrom: AlgebraFormula = `*`(`1`, a)
     override val patternTo: AlgebraFormula = a
 }
 
 class ZeroMultiplication : Equivalence() {
 
     val a = AllowAllVars()
-    override val patternFrom: AlgebraFormula = `*`(`0`(), a)
-    override val patternTo: AlgebraFormula = `0`()
+    override val patternFrom: AlgebraFormula = `*`(`0`, a)
+    override val patternTo: AlgebraFormula = `0`
 }
 
 class MultiplicationAssociativity : Equivalence() {

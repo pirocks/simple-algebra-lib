@@ -2,7 +2,6 @@ package io.github.pirocks.algebra
 
 import io.github.pirocks.algebra.equivalences.MatchSubstitutions
 import java.io.Serializable
-import java.lang.IllegalArgumentException
 import java.util.*
 
 
@@ -116,7 +115,7 @@ open class Variable(open val name: VariableName = VariableName()) : AlgebraFormu
 
     override fun equals(other: Any?): Boolean {
         if (other !is Variable) return false
-        if (other.name != name) return false
+        // Two variables are equal if they are both variables on top level.
         return true
     }
 

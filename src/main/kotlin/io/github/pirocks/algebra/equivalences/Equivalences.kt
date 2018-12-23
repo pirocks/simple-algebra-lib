@@ -8,7 +8,7 @@ import io.github.pirocks.algebra.rewriting.renameAllVars
 import io.github.pirocks.algebra.rewriting.renameVar
 
 /**
- * mostly copy paste from nd-thing logic lib, which will likely be renamed
+ * mostly copy paste from logic lib, which will likely be renamed
  */
 interface PatternBasedRewriter {
     fun matches(formula: AlgebraFormula): Int
@@ -98,7 +98,9 @@ abstract class Equivalence : PatternBasedRewriter {
                 return super.rewrite(original)
             }
         }.rewrite(formula)
-        assert(patternFound)
+        if (!patternFound) {
+            throw IllegalArgumentException("Pattern match was not found.")
+        }
         return renameAllVars(rewritten)
 
     }
