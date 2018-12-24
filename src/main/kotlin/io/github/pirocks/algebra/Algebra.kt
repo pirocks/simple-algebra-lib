@@ -15,7 +15,7 @@ sealed class AlgebraFormula : Serializable {
 
     internal open fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
         if (this.javaClass != other.javaClass) return false
-        return parameters.zip(other.parameters).all { it.first.equalsImpl(it.second, EqualsContext()) }
+        return parameters.zip(other.parameters).all { it.first.equalsImpl(it.second, equalsContext) }
     }
 
     override fun hashCode(): Int = hashCodeImpl(HashCodeContext())
@@ -104,6 +104,9 @@ open class Variable(open val name: VariableName = VariableName()) : AlgebraFormu
         if (name in equalsContext.thisToOtherVariableName.keys) {
             return equalsContext.thisToOtherVariableName[name] == other.name
         } else {
+            if (other.name in equalsContext.thisToOtherVariableName.values) {
+                return false//prevent multiple variables mapping to the same value. This would allow situations in which a*a+c was the same as a*b+c, which they are not.
+            }
             equalsContext.thisToOtherVariableName[name] = other.name
             return true;
         }
