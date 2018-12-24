@@ -75,6 +75,9 @@
     </dependencies>
 
     <build>
+      <sourceDirectory>src/main/kotlin</sourceDirectory>
+      <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -188,7 +191,7 @@
                         </goals>
                         <configuration>
                             <sourceDirs>
-                                <!--<source>src/main/java</source>-->
+                                <source>src/main/java</source>
                                 <source>src/main/kotlin</source>
                                 <!--<source>src/main/resources</source>-->
                             </sourceDirs>
@@ -202,8 +205,8 @@
                         </goals>
                         <configuration>
                             <sourceDirs>
-                                <!--<source>src/test/java</source>-->
-                                <!--<source>src/test/kotlin</source>-->
+                                <source>src/test/java</source>
+                                <source>src/test/kotlin</source>
                                 <!--<source>src/test/resources</source>-->
                             </sourceDirs>
                         </configuration>
