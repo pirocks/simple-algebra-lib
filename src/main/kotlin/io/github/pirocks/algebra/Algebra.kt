@@ -4,10 +4,28 @@ import io.github.pirocks.algebra.equivalences.MatchSubstitutions
 import java.io.Serializable
 import java.util.*
 
-
+/**
+ * Base class for all algebraic expressions.
+ */
 sealed class AlgebraFormula : Serializable {
+    /**
+     * Returns an array of any parameters/subformulas a AlegbraFormula can contain.
+     */
     abstract val parameters: Array<AlgebraFormula>
+
+    /**
+     * Outputs the formula in prefix notation.
+     */
     abstract fun toPrefixNotation(): String
+
+    /**
+     * Returns true iff two formulas are structurally the same. In other words:
+     *  a + b == c + d != a * b
+     *  a + a == b + b != 2 * b
+     *  a * a != a * b
+     *
+     *  This is similar to alpha equivalence for lambda calculus.
+     */
     override fun equals(other: Any?): Boolean {
         if (other !is AlgebraFormula) return false
         return equalsImpl(other, EqualsContext())
@@ -18,8 +36,20 @@ sealed class AlgebraFormula : Serializable {
         return parameters.zip(other.parameters).all { it.first.equalsImpl(it.second, equalsContext) }
     }
 
+    /**
+     * Hashcode behaves consistently with equals.
+     */
     override fun hashCode(): Int = hashCodeImpl(HashCodeContext())
     internal abstract fun hashCodeImpl(hashCodeContext: HashCodeContext): Int
+
+    /**
+     * Tests if a particular pattern matches a formula.
+     * You probably want to use io.github.pirocks.algebra.equivalences.Equivalence.matches instead of this method.
+     * @see io.github.pirocks.algebra.equivalences.Equivalence.matches
+     * @param other
+     * @param matchContext stores pattern matches in a map. Should usually be initialized to a new MatchSubstitutions object.
+     * @return True if this pattern matches `other`. False otherwise
+     */
     open fun matches(other: AlgebraFormula, matchContext: MatchSubstitutions): Boolean {
         if (this.javaClass != other.javaClass) {
             return false
@@ -27,9 +57,23 @@ sealed class AlgebraFormula : Serializable {
         return parameters.zip(other.parameters).all { it.first.matches(it.second, matchContext) }
     }
 
+    /**
+     * Evaluates an expression based on a map of variable values. Currently only supports double precision arithmetic
+     * @param variableValues variable values to evaluate with.
+     */
     abstract fun eval(variableValues: Map<VariableName, Double>): Double
 
+    /**
+     * Output expression in mathml format. Mathml support varies across browsers. May not be compatible with all browsers.
+     * @see io.github.pirocks.algebra.AlgebraFormula.toHtml
+     */
     abstract fun toMathML2(): String
+
+    /**
+     * Output expression in html format, by wrapping mathml in a <math> tag. Mathml support varies across browsers.
+     * May not be compatible with all browsers.
+     * @see io.github.pirocks.algebra.AlgebraFormula.toMathML2
+     */
     fun toHtml(): String = ("<math> <mrow>" + toMathML2() + "</mrow> </math>").replace("\\s(?!separators)".toRegex(), "").trim().trimIndent()
 }
 
@@ -48,6 +92,9 @@ sealed class Constant : AlgebraFormula() {
     override val parameters: Array<AlgebraFormula> = emptyArray()
 }
 
+/**
+ * Represents any constant.
+ */
 open class ArbitraryConstant(val `val`: Double) : Constant() {
     override fun toMathML2(): String = """<mn>$`val`</mn>"""
 
@@ -60,11 +107,25 @@ open class ArbitraryConstant(val `val`: Double) : Constant() {
     }
 }
 
+/**
+ * Standard object for zero.
+ */
 class Zero : ArbitraryConstant(0.0)
+
+/**
+ * Standard object for one
+ */
 class One : ArbitraryConstant(1.0)
 
+/**
+ * Represents any operator with two parameters e.g. +,*,^,/, etc.
+ */
 sealed class BinaryFormula(val left: AlgebraFormula, val right: AlgebraFormula) : AlgebraFormula() {
+    /**
+     * String which represents this operator. Should be valid as the <mo> for mathml.
+     */
     abstract val operatorString: String
+
     override fun toPrefixNotation(): String = """(${operatorString} ${left.toPrefixNotation()} ${right.toPrefixNotation()})"""
     override val parameters: Array<AlgebraFormula> = arrayOf(left, right)
     override fun hashCodeImpl(hashCodeContext: HashCodeContext): Int = operatorString.hashCode() + 101 * left.hashCodeImpl(hashCodeContext) + 31 * right.hashCodeImpl(hashCodeContext)
@@ -80,6 +141,7 @@ sealed class BinaryFormula(val left: AlgebraFormula, val right: AlgebraFormula) 
 }
 
 /**
+ * @param name A name for the variable in question.
  * todo add a name index?
  */
 data class VariableName(val name: String = "" + getAndIncrementCounter(), val uuid: UUID = UUID.randomUUID()) {
@@ -92,6 +154,11 @@ data class VariableName(val name: String = "" + getAndIncrementCounter(), val uu
     }
 }
 
+/**
+ * Represents a variable leaf node in a formula.
+ * Different from a VariableName, since VariableNames cannot appear in a formula AST.
+ * @see VariableName
+ */
 open class Variable(open val name: VariableName = VariableName()) : AlgebraFormula() {
     override fun toMathML2(): String = """<mi>${name.name}</mi>"""
 
@@ -105,7 +172,7 @@ open class Variable(open val name: VariableName = VariableName()) : AlgebraFormu
             return equalsContext.thisToOtherVariableName[name] == other.name
         } else {
             if (other.name in equalsContext.thisToOtherVariableName.values) {
-                return false//prevent multiple variables mapping to the same value. This would allow situations in which a*a+c was the same as a*b+c, which they are not.
+                return false//prevent multiple variables mapping to the same value. This would allow situations in which a*a+c was equal to a*b+c.
             }
             equalsContext.thisToOtherVariableName[name] = other.name
             return true;
@@ -125,11 +192,15 @@ open class Variable(open val name: VariableName = VariableName()) : AlgebraFormu
     override fun hashCode(): Int {
         return name.hashCode()
     }
+
     override val parameters: Array<AlgebraFormula> = emptyArray()
     override fun toPrefixNotation(): String = name.name
 
 }
 
+/**
+ * A special type of variable which can be used as part of a pattern. Override matches for custom functionality.
+ */
 abstract class PatternMember() : Variable() {
     abstract override fun matches(other: AlgebraFormula, matchContext: MatchSubstitutions): Boolean
 }
@@ -180,6 +251,9 @@ class Exponentiation(val base: AlgebraFormula, val exponent: AlgebraFormula) : B
 
 }
 
+/**
+ * Represents a formaula which has one formula, e.g. log, cos,sin, unary minus.
+ */
 sealed class UnaryFormula(val parameter: AlgebraFormula) : AlgebraFormula() {
     override val parameters: Array<AlgebraFormula> = arrayOf(parameter)
     abstract val operatorString: String
@@ -193,6 +267,7 @@ sealed class UnaryFormula(val parameter: AlgebraFormula) : AlgebraFormula() {
         </mfenced>
         </mrow>
     """
+
     override fun hashCodeImpl(hashCodeContext: HashCodeContext): Int = operatorString.hashCode() + 31 * parameter.hashCodeImpl(hashCodeContext)
 }
 

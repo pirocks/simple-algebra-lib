@@ -1,5 +1,10 @@
 package io.github.pirocks.algebra
 
+/**
+ * Provides a handful of useful abbreviations/ more concise names.
+ */
+
+
 public typealias Mul = Multiplication
 public typealias Add = Addition
 public typealias Div = Division
