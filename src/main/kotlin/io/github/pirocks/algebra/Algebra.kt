@@ -143,6 +143,7 @@ sealed class BinaryFormula(val left: AlgebraFormula, val right: AlgebraFormula) 
 /**
  * @param name A name for the variable in question.
  * todo add a name index?
+ * @see FunctionName
  */
 data class VariableName(val name: String = "" + getAndIncrementCounter(), val uuid: UUID = UUID.randomUUID()) {
     companion object {
@@ -287,4 +288,44 @@ class UMinus(parameter: AlgebraFormula) : UnaryFormula(parameter) {
     override fun eval(variableValues: Map<VariableName, Double>): Double = -parameter.eval(variableValues)
 
     override val operatorString: String = "-"
+}
+
+class FunctionApplication(override val parameters: Array<AlgebraFormula>, val function: AlgebraFunction) : AlgebraFormula() {
+    override fun toPrefixNotation(): String = """(${function.name} ${parameters.joinToString(separator = " ", transform = { it.toPrefixNotation() })}"""
+
+    override fun hashCodeImpl(hashCodeContext: HashCodeContext): Int {
+        return function.hashCode() + parameters.map { it -> it.hashCodeImpl(hashCodeContext) }.reduce { acc, i -> acc + 31 * i }
+    }
+
+    override fun eval(variableValues: Map<VariableName, Double>): Double = function.func(parameters.map { it.eval(variableValues) }.toTypedArray())
+
+
+    override fun toMathML2(): String = """
+        <mrow>
+        <mfenced separators="">
+        <mi>${function.name.name}</mi>
+        <mo> &ApplyFunction; </mo>
+        ${parameters.joinToString(separator = " ", transform = { """<mrow>${it.toMathML2()}</mrow>""" })}
+        </mfenced>
+        </mrow>
+    """
+}
+
+/**
+ * Uses name AlgebraFunction to avoid clash with builtin function type named  algebra function
+ * @param func a lambda which evaluates the function in question
+ * @param name for the function in question.
+ */
+class AlgebraFunction(val func: (Array<Double>) -> Double, val name: FunctionName) {
+
+}
+
+class FunctionName(val name: String = "" + VariableName.getAndIncrementCounter(), val uuid: UUID = UUID.randomUUID()) {
+    companion object {
+        var varCounter = 0
+        fun getAndIncrementCounter(): Int {
+            varCounter += 1
+            return varCounter
+        }
+    }
 }
