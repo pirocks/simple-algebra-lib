@@ -303,8 +303,7 @@ class FunctionApplication(override val parameters: Array<AlgebraFormula>, val fu
     override fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
         if (other !is FunctionApplication) return false
         if (other.function.name != function.name) return false
-        if (other.parameters.size != parameters.size) return false
-        return other.parameters.zip(parameters).all { it.first.equalsImpl(it.second, equalsContext) }
+        return super.equalsImpl(other, equalsContext)
     }
 
     override fun eval(variableValues: Map<VariableName, Double>): Double = function.func(parameters.map { it.eval(variableValues) }.toTypedArray())
