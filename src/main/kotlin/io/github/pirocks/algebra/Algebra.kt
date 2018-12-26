@@ -297,6 +297,12 @@ class FunctionApplication(override val parameters: Array<AlgebraFormula>, val fu
         return function.hashCode() + parameters.map { it -> it.hashCodeImpl(hashCodeContext) }.reduce { acc, i -> acc + 31 * i }
     }
 
+    override fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
+        if (other !is FunctionApplication) return false
+        if (other.function.name != function.name) return false
+        return other.parameters.zip(parameters).all { it.first.equalsImpl(it.second, equalsContext) }
+    }
+
     override fun eval(variableValues: Map<VariableName, Double>): Double = function.func(parameters.map { it.eval(variableValues) }.toTypedArray())
 
 
@@ -316,11 +322,11 @@ class FunctionApplication(override val parameters: Array<AlgebraFormula>, val fu
  * @param func a lambda which evaluates the function in question
  * @param name for the function in question.
  */
-class AlgebraFunction(val func: (Array<Double>) -> Double, val name: FunctionName) {
+class AlgebraFunction(val func: (Array<Double>) -> Double, val name: FunctionName = FunctionName()) {
 
 }
 
-class FunctionName(val name: String = "" + VariableName.getAndIncrementCounter(), val uuid: UUID = UUID.randomUUID()) {
+data class FunctionName(val name: String = "" + VariableName.getAndIncrementCounter(), val uuid: UUID = UUID.randomUUID()) {
     companion object {
         var varCounter = 0
         fun getAndIncrementCounter(): Int {

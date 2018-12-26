@@ -9,7 +9,12 @@ abstract class RewritingVisitor() {
             is UnaryFormula -> rewriteUnaryFormula(original)
             is Constant -> rewriteConstant(original)
             is Variable -> rewriteVariable(original)
+            is FunctionApplication -> rewriteFunctionApplication(original)
         }
+    }
+
+    open fun rewriteFunctionApplication(original: FunctionApplication): AlgebraFormula {
+        return original
     }
 
     open fun rewriteBinaryFormula(original: BinaryFormula): AlgebraFormula {

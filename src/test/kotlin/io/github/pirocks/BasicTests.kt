@@ -1,8 +1,6 @@
 package io.github.pirocks
 
-import io.github.pirocks.algebra.Variable
-import io.github.pirocks.algebra.`*`
-import io.github.pirocks.algebra.`+`
+import io.github.pirocks.algebra.*
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -15,9 +13,14 @@ val expr1 = `+`(`*`(a, a), b)
 val expr1a = `+`(`*`(d, d), c)
 val expr2 = `+`(`*`(a, b), c)
 val expr3 = `+`(`*`(expr1, expr1), c)
+val func1 = AlgebraFunction({ throw IllegalStateException() }, FunctionName())
+val func2 = AlgebraFunction({ throw IllegalStateException() }, FunctionName())
+val funcApplication1 = FunctionApplication(emptyArray(), func1)
+val funcApplication2 = FunctionApplication(emptyArray(), func1)
+val funcApplication3 = FunctionApplication(emptyArray(), func2)
+val funcApplication4 = FunctionApplication(arrayOf(expr1), func2)
 
 class BasicTestsEquals {
-
     @Test
     fun testSameStructureDifferentVar() {
         assertEquals(expr1, expr1a)
@@ -34,5 +37,15 @@ class BasicTestsHashcode {
     fun testSameStructureDifferentVar() {
         assertEquals(expr1.hashCode(), expr1a.hashCode())
         assertEquals(expr1a.hashCode(), expr1.hashCode())
+    }
+}
+
+class TestFunctions {
+    @Test
+    fun testEquals() {
+        assertEquals(funcApplication1, funcApplication2)
+        assertEquals(funcApplication1.hashCode(), funcApplication2.hashCode())
+        assertNotEquals(funcApplication1, funcApplication3)
+        assertNotEquals(funcApplication4, funcApplication3)
     }
 }
