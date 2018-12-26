@@ -33,6 +33,7 @@ sealed class AlgebraFormula : Serializable {
 
     internal open fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
         if (this.javaClass != other.javaClass) return false
+        if (other.parameters.size != parameters.size) return false
         return parameters.zip(other.parameters).all { it.first.equalsImpl(it.second, equalsContext) }
     }
 
@@ -40,6 +41,7 @@ sealed class AlgebraFormula : Serializable {
      * Hashcode behaves consistently with equals.
      */
     override fun hashCode(): Int = hashCodeImpl(HashCodeContext())
+
     internal abstract fun hashCodeImpl(hashCodeContext: HashCodeContext): Int
 
     /**
@@ -54,6 +56,7 @@ sealed class AlgebraFormula : Serializable {
         if (this.javaClass != other.javaClass) {
             return false
         }
+        if (other.parameters.size != parameters.size) return false
         return parameters.zip(other.parameters).all { it.first.matches(it.second, matchContext) }
     }
 
@@ -78,7 +81,7 @@ sealed class AlgebraFormula : Serializable {
 }
 
 internal class EqualsContext(
-    val thisToOtherVariableName: MutableMap<VariableName, VariableName> = mutableMapOf()
+        val thisToOtherVariableName: MutableMap<VariableName, VariableName> = mutableMapOf()
 )
 
 internal class HashCodeContext {
@@ -259,7 +262,7 @@ sealed class UnaryFormula(val parameter: AlgebraFormula) : AlgebraFormula() {
     override val parameters: Array<AlgebraFormula> = arrayOf(parameter)
     abstract val operatorString: String
     override fun toPrefixNotation(): String = """(${operatorString} ${parameter.toPrefixNotation()})"""
-    override fun toMathML2(): String ="""
+    override fun toMathML2(): String = """
         <mrow>
         <mfenced separators="">
         <mi>${operatorString}</mi>
@@ -294,12 +297,13 @@ class FunctionApplication(override val parameters: Array<AlgebraFormula>, val fu
     override fun toPrefixNotation(): String = """(${function.name} ${parameters.joinToString(separator = " ", transform = { it.toPrefixNotation() })}"""
 
     override fun hashCodeImpl(hashCodeContext: HashCodeContext): Int {
-        return function.hashCode() + parameters.map { it -> it.hashCodeImpl(hashCodeContext) }.reduce { acc, i -> acc + 31 * i }
+        return function.hashCode() + parameters.map { it -> it.hashCodeImpl(hashCodeContext) }.fold(0) { acc, i -> acc + 31 * i }
     }
 
     override fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
         if (other !is FunctionApplication) return false
         if (other.function.name != function.name) return false
+        if (other.parameters.size != parameters.size) return false
         return other.parameters.zip(parameters).all { it.first.equalsImpl(it.second, equalsContext) }
     }
 
@@ -322,11 +326,10 @@ class FunctionApplication(override val parameters: Array<AlgebraFormula>, val fu
  * @param func a lambda which evaluates the function in question
  * @param name for the function in question.
  */
-class AlgebraFunction(val func: (Array<Double>) -> Double, val name: FunctionName = FunctionName()) {
-
+data class AlgebraFunction(val func: (Array<Double>) -> Double, val name: FunctionName = FunctionName()) {
 }
 
-data class FunctionName(val name: String = "" + VariableName.getAndIncrementCounter(), val uuid: UUID = UUID.randomUUID()) {
+data class FunctionName(val name: String = "" + FunctionName.getAndIncrementCounter(), val uuid: UUID = UUID.randomUUID()) {
     companion object {
         var varCounter = 0
         fun getAndIncrementCounter(): Int {
