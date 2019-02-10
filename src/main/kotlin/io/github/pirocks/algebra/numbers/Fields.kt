@@ -27,7 +27,7 @@ interface FieldElement
 
 interface Scalar : FieldElement
 
-object FloatField : Field<FloatVal>, Scalar {
+object FloatField : Field<FloatVal> {
     override val zero: FloatVal
         get() = FloatVal(0.0f)
 
@@ -44,10 +44,10 @@ object FloatField : Field<FloatVal>, Scalar {
 
 }
 
-class FloatVal(val `val`: Float) : FieldElement
+class FloatVal(val `val`: Float) : Scalar
 
 
-object DoubleField : Field<DoubleVal>, Scalar {
+object DoubleField : Field<DoubleVal> {
     override val zero: DoubleVal
         get() = DoubleVal(0.0)
 
@@ -64,7 +64,7 @@ object DoubleField : Field<DoubleVal>, Scalar {
 
 }
 
-class DoubleVal(val `val`: Double) : FieldElement
+class DoubleVal(val `val`: Double) : Scalar
 
 
 // 1. Commutativity:
@@ -104,9 +104,30 @@ interface VectorSpace<VectorType : Vector, ElementType : Scalar, OnField : Field
     fun inverse(v: VectorType): VectorType
     fun addBin(a: VectorType, b: VectorType): VectorType
     fun add(vararg vals: VectorType) = vals.reduceRight { elem, acc -> addBin(elem, acc) }
-    fun multiply(a: Scalar, v: VectorType): VectorType
-
+    fun multiply(a: ElementType, v: VectorType): VectorType
 }
 
 interface Vector
 
+class DoubleVector(val `val`: DoubleArray) : Vector
+
+open class Dimension(val n: Int)
+
+class DoubleVectorSpace<Dim : Dimension>(val dims: Dim) : VectorSpace<DoubleVector, DoubleVal, DoubleField> {
+    override val scalarIdentity: Scalar
+        get() = DoubleVal(1.0)
+    override val vectorAdditiveIdentity: Vector
+        get() = DoubleVector(Array(dims.n) { 0.0 }.toDoubleArray())
+
+    override fun inverse(v: DoubleVector): DoubleVector =
+            DoubleVector(v.`val`.map { -it }.toDoubleArray())
+
+    override fun addBin(a: DoubleVector, b: DoubleVector): DoubleVector {
+        return DoubleVector(a.`val`.zip(b.`val`).map { it.first + it.second }.toDoubleArray())
+    }
+
+    override fun multiply(a: DoubleVal, v: DoubleVector): DoubleVector {
+        return DoubleVector(v.`val`.map { a.`val` * it }.toDoubleArray())
+    }
+
+}
