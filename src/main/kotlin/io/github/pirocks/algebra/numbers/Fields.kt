@@ -14,7 +14,7 @@ interface AlgebraValue
 //identity	a+0=a=0+a	a·1=a=1·a
 //inverses	a+(-a)=0=(-a)+a	aa^(-1)=1=a^(-1)a if a!=0
 
-interface Field<ElementType : FieldElement>  {
+interface Field<ElementType : FieldElement<Field<ElementType>>>  {
     val zero: ElementType
     val one: ElementType
     fun multiplyBin(a: ElementType, b: ElementType): ElementType
@@ -25,10 +25,13 @@ interface Field<ElementType : FieldElement>  {
     fun parse(string: String): ElementType
 }
 
+interface FieldElement<out T : Field<*>> : AlgebraValue{
+    val field: T
+}
 
-interface FieldElement : AlgebraValue
-
-interface Scalar : FieldElement
+interface Scalar<out T: Field<*>> : FieldElement<T>{
+    override val field: T
+}
 
 object FloatField : Field<FloatVal> {
     override val zero: FloatVal
@@ -47,7 +50,10 @@ object FloatField : Field<FloatVal> {
 
 }
 
-class FloatVal(val `val`: Float) : Scalar
+class FloatVal(val `val`: Float) : Scalar<Field<FloatVal>> {
+    override val field: Field<FloatVal>
+        get() = FloatField
+}
 
 
 object DoubleField : Field<DoubleVal> {
@@ -67,7 +73,10 @@ object DoubleField : Field<DoubleVal> {
 
 }
 
-class DoubleVal(val `val`: Double) : RealApproxiamation
+class DoubleVal(val `val`: Double) : RealApproxiamation {
+    override val field: Field<*>
+        get() = DoubleField
+}
 
 
 // 1. Commutativity:
