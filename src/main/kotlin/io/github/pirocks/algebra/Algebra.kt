@@ -3,7 +3,6 @@ package io.github.pirocks.algebra
 import io.github.pirocks.algebra.equivalences.MatchSubstitutions
 import io.github.pirocks.algebra.numbers.AlgebraValue
 import io.github.pirocks.algebra.numbers.DelegatingField
-import io.github.pirocks.algebra.numbers.Field
 import io.github.pirocks.algebra.numbers.FieldElement
 import java.io.Serializable
 import java.util.*
@@ -127,14 +126,14 @@ internal class HashCodeContext {
 /**
  * Represents any operator with two parameters e.g. +,*,^,/, etc.
  */
-sealed class BinaryFormula<ReturnType : AlgebraValue>(val left: AlgebraFormula<*>, val right: AlgebraFormula<*>) : AlgebraFormula<ReturnType>() {
+sealed class BinaryFormula<LeftInput: AlgebraValue, RightInput: AlgebraValue,ReturnType : AlgebraValue>(val left: AlgebraFormula<*,LeftInput>, val right: AlgebraFormula<*,RightInput>) : AlgebraFormula<AlgebraValue,ReturnType>() {//todo maybe add overridable comon input type
     /**
      * String which represents this operator. Should be valid as the <mo> for mathml.
      */
     abstract val operatorString: String
 
     override fun toPrefixNotation(): String = """(${operatorString} ${left.toPrefixNotation()} ${right.toPrefixNotation()})"""
-    override val parameters: Array<AlgebraFormula<*>> = arrayOf(left, right)
+    override val parameters: List<AlgebraFormula<*,*>> = listOf(left, right)
     override fun hashCodeImpl(hashCodeContext: HashCodeContext): Int = operatorString.hashCode() + 101 * left.hashCodeImpl(hashCodeContext) + 31 * right.hashCodeImpl(hashCodeContext)
     override fun toMathML2(): String = """
         <mrow>
@@ -167,14 +166,14 @@ data class VariableName(val name: String = "" + getAndIncrementCounter(), val uu
  * Different from a VariableName, since VariableNames cannot appear in a formula AST.
  * @see VariableName
  */
-open class Variable<VariableType:AlgebraValue>(open val name: VariableName = VariableName()) : AlgebraFormula<VariableType>() {
+open class Variable<VariableType:AlgebraValue>(open val name: VariableName = VariableName()) : AlgebraFormula<AlgebraValue,VariableType>() {
     override fun toMathML2(): String = """<mi>${name.name}</mi>"""
 
     override fun eval(variableValues: Map<VariableName, AlgebraValue>): VariableType {
         return variableValues[name] as? VariableType? ?: throw IllegalArgumentException("Not all variable values where provided")
     }
 
-    override fun equalsImpl(other: AlgebraFormula<*>, equalsContext: EqualsContext): Boolean {
+    override fun equalsImpl(other: AlgebraFormula<*,*>, equalsContext: EqualsContext): Boolean {
         if (other !is Variable) return false
         if (name in equalsContext.thisToOtherVariableName.keys) {
             return equalsContext.thisToOtherVariableName[name] == other.name
@@ -201,7 +200,7 @@ open class Variable<VariableType:AlgebraValue>(open val name: VariableName = Var
         return name.hashCode()
     }
 
-    override val parameters: Array<AlgebraFormula<*>> = emptyArray()
+    override val parameters: List<AlgebraFormula<*,*>> = emptyList()
     override fun toPrefixNotation(): String = name.name
 
 }
@@ -210,11 +209,11 @@ open class Variable<VariableType:AlgebraValue>(open val name: VariableName = Var
  * A special type of variable which can be used as part of a pattern. Override matches for custom functionality.
  */
 abstract class PatternMember <NeededReturnType : AlgebraValue>: Variable<NeededReturnType>() {
-    abstract override fun matches(other: AlgebraFormula<*>, matchContext: MatchSubstitutions): Boolean
+    abstract override fun matches(other: AlgebraFormula<*,*>, matchContext: MatchSubstitutions): Boolean
 }
 
 class AllowAllVars<NeededReturnType : AlgebraValue> : PatternMember<NeededReturnType>() {
-    override fun matches(other: AlgebraFormula<*>, matchContext: MatchSubstitutions): Boolean {
+    override fun matches(other: AlgebraFormula<*,*>, matchContext: MatchSubstitutions): Boolean {
         return if (this in matchContext.matchedPatterns) {
             matchContext.matchedPatterns[this]!!.equalsImpl(other, EqualsContext(matchContext.variableSubstitutions))
         } else {
@@ -225,10 +224,9 @@ class AllowAllVars<NeededReturnType : AlgebraValue> : PatternMember<NeededReturn
 }
 
 
-class Addition<TOut:AlgebraValue, Tin : AlgebraValue>(left: AlgebraFormula<Tin>, right: AlgebraFormula<TOut>) : BinaryFormula<TOut>(left, right) {
+class Addition<Tin : FieldElement<TOut>, TOut:FieldElement<TOut>>(left: AlgebraFormula<*,Tin>, right: AlgebraFormula<*,Tin>) : BinaryFormula<Tin,Tin,TOut>(left, right) {
     override fun eval(variableValues: Map<VariableName, AlgebraValue>): TOut {
-        val eval: Tin = left.eval(variableValues) as Tin
-        return eval + right.eval(variableValues)
+        return (left.eval(variableValues) addBin right.eval(variableValues))
     }
 
     override val operatorString: String = "+"
@@ -295,11 +293,8 @@ sealed class UnaryFormula<In: AlgebraValue,out Out: AlgebraValue>(val parameter:
 //    override val operatorString: String = "cos"
 //}
 
-class UMinus<In: FieldElement<*>,out Out:FieldElement<*>>(parameter: AlgebraFormula<*,In>) : UnaryFormula<In,Out>(parameter) {
-    override fun eval(variableValues: Map<VariableName, AlgebraValue>): Out {
-        val paramVal = parameter.eval(variableValues)
-        return DelegatingField.inverse(paramVal)
-    }
+class UMinus<In: FieldElement<Out>,Out: FieldElement<Out>>(parameter: AlgebraFormula<*,In>) : UnaryFormula<In,Out>(parameter) {
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): Out = parameter.eval(variableValues).inverse()
 
     override val operatorString: String = "-"
 }

@@ -4,7 +4,6 @@ import io.github.pirocks.algebra.RealApproxiamation
 import java.lang.Double.parseDouble
 import java.lang.Float.parseFloat
 
-
 interface AlgebraValue
 
 //name	addition	multiplication
@@ -14,49 +13,39 @@ interface AlgebraValue
 //identity	a+0=a=0+a	a·1=a=1·a
 //inverses	a+(-a)=0=(-a)+a	aa^(-1)=1=a^(-1)a if a!=0
 
-interface Field<ElementType : FieldElement<Field<ElementType>>>  {
+interface FieldElement<ElementType : FieldElement<ElementType>>: AlgebraValue  {
     val zero: ElementType
     val one: ElementType
-    fun multiplyBin(a: ElementType, b: ElementType): ElementType
-    fun addBin(a: ElementType, b: ElementType): ElementType
-    fun inverse(a: ElementType): ElementType
-    fun multiply(vararg vals: ElementType) = vals.reduceRight { fieldElement, acc -> multiplyBin(fieldElement, acc) }
-    fun add(vararg vals: ElementType) = vals.reduceRight { fieldElement, acc -> addBin(fieldElement, acc) }
+    infix fun multiplyBin(b: ElementType): ElementType
+    infix fun addBin(b: ElementType): ElementType
+    fun inverse(): ElementType
+    fun multiply(vararg vals: ElementType) = vals.reduceRight { fieldElement, acc -> fieldElement multiplyBin acc }
+    fun add(vararg vals: ElementType) = vals.reduceRight { fieldElement, acc -> fieldElement addBin acc }
     fun parse(string: String): ElementType
 }
 
-interface FieldElement<out T : Field<*>> : AlgebraValue{
-    val field: T
-}
 
-interface Scalar<out T: Field<*>> : FieldElement<T>{
-    override val field: T
-}
+interface Scalar<T: FieldElement<T>> : FieldElement<T>
 
-object FloatField : Field<FloatVal> {
-    override val zero: FloatVal
-        get() = FloatVal(0.0f)
+class FloatFieldVal(val `val`: Float) : FieldElement<FloatFieldVal> {
+    override val zero: FloatFieldVal
+        get() = FloatFieldVal(0.0f)
 
-    override val one: FloatVal
-        get() = FloatVal(1.0f)
+    override val one: FloatFieldVal
+        get() = FloatFieldVal(1.0f)
 
-    override fun multiplyBin(a: FloatVal, b: FloatVal): FloatVal = FloatVal(a.`val` * b.`val`)
+    override fun multiplyBin(b: FloatFieldVal): FloatFieldVal = FloatFieldVal(this.`val` * b.`val`)
 
-    override fun addBin(a: FloatVal, b: FloatVal): FloatVal = FloatVal(a.`val` + b.`val`)
+    override fun addBin(b: FloatFieldVal): FloatFieldVal = FloatFieldVal(this.`val` + b.`val`)
 
-    override fun parse(string: String): FloatVal = FloatVal(parseFloat(string))
+    override fun parse(string: String): FloatFieldVal = FloatFieldVal(parseFloat(string))
 
-    override fun inverse(a: FloatVal): FloatVal = FloatVal(-a.`val`)
+    override fun inverse(): FloatFieldVal = FloatFieldVal(-this.`val`)
 
 }
 
-class FloatVal(val `val`: Float) : Scalar<Field<FloatVal>> {
-    override val field: Field<FloatVal>
-        get() = FloatField
-}
 
-
-object DoubleField : Field<DoubleVal> {
+object DoubleField : FieldElement<DoubleVal> {
     override val zero: DoubleVal
         get() = DoubleVal(0.0)
 
@@ -74,7 +63,7 @@ object DoubleField : Field<DoubleVal> {
 }
 
 class DoubleVal(val `val`: Double) : RealApproxiamation {
-    override val field: Field<*>
+    override val field: FieldElement<*>
         get() = DoubleField
 }
 
@@ -110,7 +99,7 @@ class DoubleVal(val `val`: Double) : RealApproxiamation {
 //8. Scalar multiplication identity:
 //1X=X.
 //(8)
-interface VectorSpace<VectorType : Vector, ElementType : Scalar, OnField : Field<ElementType>> {
+interface VectorSpace<VectorType : Vector, ElementType : Scalar, OnField : FieldElement<ElementType>> {
     val scalarIdentity: Scalar
     val vectorAdditiveIdentity: Vector
     fun inverse(v: VectorType): VectorType
