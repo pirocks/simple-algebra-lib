@@ -1,6 +1,5 @@
 package io.github.pirocks.algebra.numbers
 
-import io.github.pirocks.algebra.RealApproxiamation
 import java.lang.Double.parseDouble
 import java.lang.Float.parseFloat
 
@@ -27,7 +26,7 @@ interface FieldElement<ElementType : FieldElement<ElementType>>: AlgebraValue  {
 
 interface Scalar<T: FieldElement<T>> : FieldElement<T>
 
-class FloatFieldVal(val `val`: Float) : FieldElement<FloatFieldVal> {
+class FloatFieldVal(val `val`: Float) : Scalar<FloatFieldVal> {
     override val zero: FloatFieldVal
         get() = FloatFieldVal(0.0f)
 
@@ -44,28 +43,23 @@ class FloatFieldVal(val `val`: Float) : FieldElement<FloatFieldVal> {
 
 }
 
+class DoubleFieldVal(val `val`: Double) : Scalar<DoubleFieldVal> {
+    override val zero: DoubleFieldVal
+        get() = DoubleFieldVal(0.0)
 
-object DoubleField : FieldElement<DoubleVal> {
-    override val zero: DoubleVal
-        get() = DoubleVal(0.0)
+    override val one: DoubleFieldVal
+        get() = DoubleFieldVal(1.0)
 
-    override val one: DoubleVal
-        get() = DoubleVal(1.0)
+    override fun multiplyBin(b: DoubleFieldVal): DoubleFieldVal = DoubleFieldVal(this.`val` * b.`val`)
 
-    override fun multiplyBin(a: DoubleVal, b: DoubleVal): DoubleVal = DoubleVal(a.`val` * b.`val`)
+    override fun addBin(b: DoubleFieldVal): DoubleFieldVal = DoubleFieldVal(this.`val` + b.`val`)
 
-    override fun addBin(a: DoubleVal, b: DoubleVal): DoubleVal = DoubleVal(a.`val` + b.`val`)
+    override fun parse(string: String): DoubleFieldVal = DoubleFieldVal(parseDouble(string))
 
-    override fun parse(string: String): DoubleVal = DoubleVal(parseDouble(string))
-
-    override fun inverse(a: DoubleVal): DoubleVal = DoubleVal(-a.`val`)
+    override fun inverse(): DoubleFieldVal = DoubleFieldVal(-this.`val`)
 
 }
 
-class DoubleVal(val `val`: Double) : RealApproxiamation {
-    override val field: FieldElement<*>
-        get() = DoubleField
-}
 
 
 // 1. Commutativity:
@@ -99,13 +93,13 @@ class DoubleVal(val `val`: Double) : RealApproxiamation {
 //8. Scalar multiplication identity:
 //1X=X.
 //(8)
-interface VectorSpace<VectorType : Vector, ElementType : Scalar, OnField : FieldElement<ElementType>> {
-    val scalarIdentity: Scalar
+interface VectorSpace<VectorType : Vector, OnField : Scalar<*>> {
+    val scalarIdentity: OnField
     val vectorAdditiveIdentity: Vector
     fun inverse(v: VectorType): VectorType
     fun addBin(a: VectorType, b: VectorType): VectorType
     fun add(vararg vals: VectorType) = vals.reduceRight { elem, acc -> addBin(elem, acc) }
-    fun multiply(a: ElementType, v: VectorType): VectorType
+    fun multiply(a: OnField, v: VectorType): VectorType
 }
 
 interface Vector : AlgebraValue
@@ -114,9 +108,9 @@ class DoubleVector(val `val`: DoubleArray) : Vector
 
 open class Dimension(val n: Int)
 
-class DoubleVectorSpace<Dim : Dimension>(val dims: Dim) : VectorSpace<DoubleVector, DoubleVal, DoubleField> {
-    override val scalarIdentity: Scalar
-        get() = DoubleVal(1.0)
+class DoubleVectorSpace<Dim : Dimension>(val dims: Dim) : VectorSpace<DoubleVector, DoubleFieldVal> {
+    override val scalarIdentity: DoubleFieldVal
+        get() = DoubleFieldVal(1.0)
     override val vectorAdditiveIdentity: Vector
         get() = DoubleVector(Array(dims.n) { 0.0 }.toDoubleArray())
 
@@ -127,7 +121,7 @@ class DoubleVectorSpace<Dim : Dimension>(val dims: Dim) : VectorSpace<DoubleVect
         return DoubleVector(a.`val`.zip(b.`val`).map { it.first + it.second }.toDoubleArray())
     }
 
-    override fun multiply(a: DoubleVal, v: DoubleVector): DoubleVector {
+    override fun multiply(a: DoubleFieldVal, v: DoubleVector): DoubleVector {
         return DoubleVector(v.`val`.map { a.`val` * it }.toDoubleArray())
     }
 

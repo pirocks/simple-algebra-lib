@@ -2,7 +2,6 @@ package io.github.pirocks.algebra
 
 import io.github.pirocks.algebra.equivalences.MatchSubstitutions
 import io.github.pirocks.algebra.numbers.AlgebraValue
-import io.github.pirocks.algebra.numbers.DelegatingField
 import io.github.pirocks.algebra.numbers.FieldElement
 import java.io.Serializable
 import java.util.*
@@ -224,7 +223,7 @@ class AllowAllVars<NeededReturnType : AlgebraValue> : PatternMember<NeededReturn
 }
 
 
-class Addition<Tin : FieldElement<TOut>, TOut:FieldElement<TOut>>(left: AlgebraFormula<*,Tin>, right: AlgebraFormula<*,Tin>) : BinaryFormula<Tin,Tin,TOut>(left, right) {
+class Addition<TOut : FieldElement<TOut>>(left: AlgebraFormula<*, TOut>, right: AlgebraFormula<*, TOut>) : BinaryFormula<TOut, TOut, TOut>(left, right) {
     override fun eval(variableValues: Map<VariableName, AlgebraValue>): TOut {
         return (left.eval(variableValues) addBin right.eval(variableValues))
     }
@@ -232,14 +231,16 @@ class Addition<Tin : FieldElement<TOut>, TOut:FieldElement<TOut>>(left: AlgebraF
     override val operatorString: String = "+"
 }
 
-class Multiplication(left: AlgebraFormula<FieldElement>, right: AlgebraFormula<FieldElement>) : BinaryFormula<FieldElement>(left, right) {
-    override fun eval(variableValues: Map<VariableName, AlgebraValue>): FieldElement {
-        return left.eval(variableValues) * right.eval(variableValues)
+class Multiplication<TOut : FieldElement<TOut>>(left: AlgebraFormula<*, TOut>, right: AlgebraFormula<*, TOut>) : BinaryFormula<TOut, TOut, TOut>(left, right) {
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): TOut {
+        return left.eval(variableValues) multiplyBin right.eval(variableValues)
     }
 
     override val operatorString: String = "*"
 }
 
+/*
+todo fields and division not a thing, so not supported atm.
 class Division(val numerator: AlgebraFormula<FieldElement>, val denominator: AlgebraFormula<FieldElement>) : BinaryFormula<FieldElement>(numerator, denominator) {
     override fun eval(variableValues: Map<VariableName, AlgebraValue>): FieldElement = numerator.eval(variableValues) / denominator.eval(variableValues)
     override val operatorString: String = "/"
@@ -252,7 +253,10 @@ class Division(val numerator: AlgebraFormula<FieldElement>, val denominator: Alg
         </mrow>
     """
 }
+*/
 
+/*
+todo fields and exponentiation sorta not a thing, so not supported atm.
 
 class Exponentiation(val base: FieldElement, val exponent: FieldElement) : BinaryFormula<FieldElement>(base, exponent) {
     override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue = Math.exp(Math.log(base.eval(variableValues)) * exponent.eval(variableValues))
@@ -260,6 +264,7 @@ class Exponentiation(val base: FieldElement, val exponent: FieldElement) : Binar
     override val operatorString: String = "^"
 
 }
+*/
 
 /**
  * Represents a formaula which has one formula, e.g. log, cos,sin, unary minus.
