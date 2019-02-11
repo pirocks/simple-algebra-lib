@@ -1,8 +1,11 @@
 package io.github.pirocks.algebra.numbers
 
+import io.github.pirocks.algebra.RealApproxiamation
 import java.lang.Double.parseDouble
 import java.lang.Float.parseFloat
 
+
+interface AlgebraValue
 
 //name	addition	multiplication
 //associativity	(a+b)+c=a+(b+c)	(ab)c=a(bc)
@@ -11,7 +14,7 @@ import java.lang.Float.parseFloat
 //identity	a+0=a=0+a	a·1=a=1·a
 //inverses	a+(-a)=0=(-a)+a	aa^(-1)=1=a^(-1)a if a!=0
 
-interface Field<ElementType : FieldElement> {
+interface Field<ElementType : FieldElement>  {
     val zero: ElementType
     val one: ElementType
     fun multiplyBin(a: ElementType, b: ElementType): ElementType
@@ -23,7 +26,7 @@ interface Field<ElementType : FieldElement> {
 }
 
 
-interface FieldElement
+interface FieldElement : AlgebraValue
 
 interface Scalar : FieldElement
 
@@ -64,7 +67,7 @@ object DoubleField : Field<DoubleVal> {
 
 }
 
-class DoubleVal(val `val`: Double) : Scalar
+class DoubleVal(val `val`: Double) : RealApproxiamation
 
 
 // 1. Commutativity:
@@ -107,7 +110,7 @@ interface VectorSpace<VectorType : Vector, ElementType : Scalar, OnField : Field
     fun multiply(a: ElementType, v: VectorType): VectorType
 }
 
-interface Vector
+interface Vector : AlgebraValue
 
 class DoubleVector(val `val`: DoubleArray) : Vector
 
