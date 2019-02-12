@@ -104,25 +104,47 @@ interface VectorSpace<VectorType : Vector<VectorType>, OnField : Scalar<*>> {
 
 interface Vector<T : Vector<T>> : AlgebraValue
 
-class DoubleVector(val `val`: DoubleArray) : Vector<DoubleVector>
+class DoubleVector<Dim : SingleDimension>(val `val`: DoubleArray) : Vector<DoubleVector<Dim>>,
+        Tensor<Dim, DoubleFieldVal, DoubleFieldVal, DoubleVectorSpace<Dim>, DoubleVector<Dim>> {
+    override fun at(i: Int): DoubleFieldVal = DoubleFieldVal(`val`[i])
+}
 
-open class Dimension(val n: Int)
+open class Dimension(open vararg val n: Int)
 
-class DoubleVectorSpace<Dim : Dimension>(val dims: Dim) : VectorSpace<DoubleVector, DoubleFieldVal> {
+open class SingleDimension(val m: Int) : Dimension(m)
+
+class DoubleVectorSpace<Dim : SingleDimension>(val dim: Dim) : VectorSpace<DoubleVector<Dim>, DoubleFieldVal> {
     override val scalarIdentity: DoubleFieldVal
         get() = DoubleFieldVal(1.0)
-    override val vectorAdditiveIdentity: DoubleVector
-        get() = DoubleVector(Array(dims.n) { 0.0 }.toDoubleArray())
+    override val vectorAdditiveIdentity: DoubleVector<Dim>
+        get() = DoubleVector(Array(dim.m) { 0.0 }.toDoubleArray())
 
-    override fun inverse(v: DoubleVector): DoubleVector =
+    override fun inverse(v: DoubleVector<Dim>): DoubleVector<Dim> =
             DoubleVector(v.`val`.map { -it }.toDoubleArray())
 
-    override fun addBin(a: DoubleVector, b: DoubleVector): DoubleVector {
+    override fun addBin(a: DoubleVector<Dim>, b: DoubleVector<Dim>): DoubleVector<Dim> {
         return DoubleVector(a.`val`.zip(b.`val`).map { it.first + it.second }.toDoubleArray())
     }
 
-    override fun multiply(a: DoubleFieldVal, v: DoubleVector): DoubleVector {
+    override fun multiply(a: DoubleFieldVal, v: DoubleVector<Dim>): DoubleVector<Dim> {
         return DoubleVector(v.`val`.map { a.`val` * it }.toDoubleArray())
     }
 
 }
+
+
+/**
+ * For multidimensional tensors use tensors of tensors. All tensors are integer indexed.
+ */
+interface Tensor<Dim : SingleDimension, Of : AlgebraValue, UnderlyingScalar : Scalar<UnderlyingScalar>, UnderlyingVectorSpace : VectorSpace<VectorType, UnderlyingScalar>, VectorType : Vector<VectorType>> :
+        VectorSpace<VectorType, UnderlyingScalar> {
+    infix fun at(i: Int): Of
+
+}
+
+
+/**
+ *
+ */
+interface Matrix<Dim1 : SingleDimension, Dim2 : SingleDimension, OnScalar : Scalar<OnScalar>> :
+        Tensor<Dim2, Tensor<Dim1, DoubleFieldVal, OnScalar>, OnScalar>
