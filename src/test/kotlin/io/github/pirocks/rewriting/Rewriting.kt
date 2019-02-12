@@ -2,18 +2,19 @@ package io.github.pirocks.rewriting
 
 import io.github.pirocks.algebra.*
 import io.github.pirocks.algebra.equivalences.*
+import io.github.pirocks.algebra.numbers.FloatFieldVal
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 
-open class IdentityTest(val expr: AlgebraFormula, val expected: AlgebraFormula, val identity: Equivalence, val matchIndex: Int = 0) {
+open class IdentityTest(val expr: AlgebraFormula<*, *>, val expected: AlgebraFormula<*, *>, val identity: Equivalence, val matchIndex: Int = 0) {
     fun doTest() {
         assertEquals(identity.apply(expr, matchIndex), expected)
     }
 }
 
-val a = Variable(VariableName())
-val b = Variable(VariableName())
+val a = Variable<FloatFieldVal>(VariableName())
+val b = Variable<FloatFieldVal>(VariableName())
 val c = `+`(a, b)
 
 class AMinusATest {

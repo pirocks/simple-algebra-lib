@@ -93,25 +93,25 @@ class DoubleFieldVal(val `val`: Double) : Scalar<DoubleFieldVal> {
 //8. Scalar multiplication identity:
 //1X=X.
 //(8)
-interface VectorSpace<VectorType : Vector, OnField : Scalar<*>> {
+interface VectorSpace<VectorType : Vector<VectorType>, OnField : Scalar<*>> {
     val scalarIdentity: OnField
-    val vectorAdditiveIdentity: Vector
+    val vectorAdditiveIdentity: Vector<VectorType>
     fun inverse(v: VectorType): VectorType
     fun addBin(a: VectorType, b: VectorType): VectorType
     fun add(vararg vals: VectorType) = vals.reduceRight { elem, acc -> addBin(elem, acc) }
     fun multiply(a: OnField, v: VectorType): VectorType
 }
 
-interface Vector : AlgebraValue
+interface Vector<T : Vector<T>> : AlgebraValue
 
-class DoubleVector(val `val`: DoubleArray) : Vector
+class DoubleVector(val `val`: DoubleArray) : Vector<DoubleVector>
 
 open class Dimension(val n: Int)
 
 class DoubleVectorSpace<Dim : Dimension>(val dims: Dim) : VectorSpace<DoubleVector, DoubleFieldVal> {
     override val scalarIdentity: DoubleFieldVal
         get() = DoubleFieldVal(1.0)
-    override val vectorAdditiveIdentity: Vector
+    override val vectorAdditiveIdentity: DoubleVector
         get() = DoubleVector(Array(dims.n) { 0.0 }.toDoubleArray())
 
     override fun inverse(v: DoubleVector): DoubleVector =
