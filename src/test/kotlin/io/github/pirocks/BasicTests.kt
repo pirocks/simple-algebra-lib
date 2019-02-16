@@ -1,21 +1,20 @@
 package io.github.pirocks
 
 import io.github.pirocks.algebra.*
-import io.github.pirocks.algebra.numbers.FloatFieldVal
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
-val a = Variable<FloatFieldVal>()
-val b = Variable<FloatFieldVal>()
-val c = Variable<FloatFieldVal>()
-val d = Variable<FloatFieldVal>()
+val a = Variable()
+val b = Variable()
+val c = Variable()
+val d = Variable()
 val expr1 = Addition(Multiplication(a, a), b)
 val expr1a = Addition(Multiplication(d, d), c)
 val expr2 = Addition(Multiplication(a, b), c)
 val expr3 = Addition(Multiplication(expr1, expr1), c)
-val func1 = AlgebraFunction<FloatFieldVal, FloatFieldVal>({ throw IllegalStateException() }, FunctionName())
-val func2 = AlgebraFunction<FloatFieldVal, FloatFieldVal>({ throw IllegalStateException() }, FunctionName())
+val func1 = AlgebraFunction({ throw IllegalStateException() }, FunctionName())
+val func2 = AlgebraFunction({ throw IllegalStateException() }, FunctionName())
 val funcApplication1 = FunctionApplication(emptyList(), func1)
 val funcApplication2 = FunctionApplication(emptyList(), func1)
 val funcApplication3 = FunctionApplication(emptyList(), func2)

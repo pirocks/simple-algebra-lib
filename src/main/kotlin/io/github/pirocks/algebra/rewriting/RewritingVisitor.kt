@@ -1,25 +1,24 @@
 package io.github.pirocks.algebra.rewriting
 
 import io.github.pirocks.algebra.*
-import io.github.pirocks.algebra.numbers.AlgebraValue
-import io.github.pirocks.algebra.numbers.FieldElement
 
 abstract class RewritingVisitor {
-    open fun <Tout : AlgebraValue> rewrite(original: AlgebraFormula<*, Tout>): AlgebraFormula<*, Tout> {
+    open fun rewrite(original: AlgebraFormula): AlgebraFormula {
         return when (original) {
-            is BinaryFormula<*, *, *> -> rewriteBinaryFormula(original)
+            is BinaryFormula -> rewriteBinaryFormula(original)
             is UnaryFormula -> rewriteUnaryFormula(original)
-//            is Constant -> rewriteConstant(original)
+            is Constant -> rewriteConstant(original)
             is Variable -> rewriteVariable(original)
             is FunctionApplication -> rewriteFunctionApplication(original)
         }
     }
 
-    open fun rewriteFunctionApplication(original: FunctionApplication<*, *>): AlgebraFormula<*, *> {
+    open fun rewriteFunctionApplication(
+            original: FunctionApplication): AlgebraFormula {
         return original
     }
 
-    open fun <T : FieldElement<T>> rewriteBinaryFormula(original: BinaryFormula<T, T, T>): AlgebraFormula<*, T> {
+    open fun rewriteBinaryFormula(original: BinaryFormula): AlgebraFormula {
         return when (original) {
             is Addition -> rewriteAddition(original)
             is Multiplication -> rewriteMultiplication(original)
@@ -28,11 +27,11 @@ abstract class RewritingVisitor {
         }
     }
 
-    open fun <T : FieldElement<T>> rewriteAddition(original: Addition<T>): AlgebraFormula<*, T> {
+    open fun rewriteAddition(original: Addition): AlgebraFormula {
         return Addition(rewrite(original.left), rewrite(original.right))
     }
 
-    open fun <T : FieldElement<T>> rewriteMultiplication(original: Multiplication<T>): AlgebraFormula<*, T> {
+    open fun rewriteMultiplication(original: Multiplication): AlgebraFormula {
         return Multiplication(rewrite(original.left), rewrite(original.right))
     }
 
@@ -44,19 +43,19 @@ abstract class RewritingVisitor {
 //        return Exponentiation(rewrite(original.left), rewrite(original.right))
 //    }
 
-    open fun <Tin : AlgebraValue, Tout : AlgebraValue> rewriteUnaryFormula(original: UnaryFormula<Tin, Tout>): AlgebraFormula<*, Tout> {
+    open fun rewriteUnaryFormula(original: UnaryFormula): AlgebraFormula {
         return when (original) {
 //            is NaturalLog -> rewriteNaturalLog(original)
 //            is Cos -> rewriteCos(original)
-            is UMinus<*> -> {
-                val original1: UMinus<*> = original
+            is UMinus -> {
+                val original1: UMinus = original
                 rewriteUMinus(original1)
             }
         }
     }
 
-    private fun <T> rewriteUMinus(original: UMinus<*>): AlgebraFormula<*, T> {
-        return original.rewriteAccept(this)
+    private fun rewriteUMinus(original: UMinus): AlgebraFormula {
+        return UMinus(rewrite(original.parameter))
     }
 
 //    open fun rewriteNaturalLog(original: NaturalLog): AlgebraFormula {
@@ -67,17 +66,17 @@ abstract class RewritingVisitor {
 //        return Cos(rewrite(original.parameter))
 //    }
 //
-//    open fun rewriteConstant(original: Constant): AlgebraFormula {
-//        return original
-//    }
+open fun rewriteConstant(original: Constant): AlgebraFormula {
+    return original
+}
 
-    open fun rewriteVariable(original: Variable<*>): AlgebraFormula<*, *> {
+    open fun rewriteVariable(original: Variable): AlgebraFormula {
         if (original is PatternMember)
             return rewritePatternMember(original)
         return original
     }
 
-    open fun rewritePatternMember(original: PatternMember<*>): AlgebraFormula<*, *> {
+    open fun rewritePatternMember(original: PatternMember): AlgebraFormula {
         return original
     }
 

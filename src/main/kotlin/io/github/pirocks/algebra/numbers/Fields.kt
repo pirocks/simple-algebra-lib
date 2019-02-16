@@ -3,6 +3,8 @@ package io.github.pirocks.algebra.numbers
 import java.lang.Double.parseDouble
 import java.lang.Float.parseFloat
 
+class TypeError : Exception()
+
 interface AlgebraValue
 
 //name	addition	multiplication
@@ -12,30 +14,46 @@ interface AlgebraValue
 //identity	a+0=a=0+a	a·1=a=1·a
 //inverses	a+(-a)=0=(-a)+a	aa^(-1)=1=a^(-1)a if a!=0
 
-interface FieldElement<ElementType : FieldElement<ElementType>>: AlgebraValue  {
-    val zero: ElementType
-    val one: ElementType
-    infix fun multiplyBin(b: ElementType): ElementType
-    infix fun addBin(b: ElementType): ElementType
-    fun inverse(): ElementType
-    fun multiply(vararg vals: ElementType) = vals.reduceRight { fieldElement, acc -> fieldElement multiplyBin acc }
-    fun add(vararg vals: ElementType) = vals.reduceRight { fieldElement, acc -> fieldElement addBin acc }
-    fun parse(string: String): ElementType
+interface FieldElement/*<ElementType : FieldElement<ElementType>>*/ :
+        AlgebraValue {
+    val zero: FieldElement
+    val one: FieldElement
+    infix fun multiplyBin(b: FieldElement): FieldElement
+    infix fun addBin(b: FieldElement): FieldElement
+    fun inverse(): FieldElement
+    fun multiply(vararg vals: FieldElement) =
+            vals.reduceRight { fieldElement, acc ->
+                fieldElement multiplyBin acc
+            }
+
+    fun add(vararg vals: FieldElement) = vals.reduceRight { fieldElement, acc ->
+        fieldElement addBin acc
+    }
+
+    fun parse(string: String): FieldElement
 }
 
 
-interface Scalar<T: FieldElement<T>> : FieldElement<T>
+interface Scalar/*<T: FieldElement<T>>*/ : FieldElement/*<T>*/
 
-class FloatFieldVal(val `val`: Float) : Scalar<FloatFieldVal> {
+class FloatFieldVal(val `val`: Float) : Scalar/*<FloatFieldVal>*/ {
     override val zero: FloatFieldVal
         get() = FloatFieldVal(0.0f)
 
     override val one: FloatFieldVal
         get() = FloatFieldVal(1.0f)
 
-    override fun multiplyBin(b: FloatFieldVal): FloatFieldVal = FloatFieldVal(this.`val` * b.`val`)
+    override fun multiplyBin(b: FieldElement): FloatFieldVal {
+        if (b !is FloatFieldVal) throw TypeError()
+        return FloatFieldVal(this.`val`
+                * b.`val`)
+    }
 
-    override fun addBin(b: FloatFieldVal): FloatFieldVal = FloatFieldVal(this.`val` + b.`val`)
+    override fun addBin(b: FieldElement): FloatFieldVal {
+        if (b !is FloatFieldVal) throw TypeError()
+        return FloatFieldVal(this.`val` + b
+                .`val`)
+    }
 
     override fun parse(string: String): FloatFieldVal = FloatFieldVal(parseFloat(string))
 
@@ -43,16 +61,24 @@ class FloatFieldVal(val `val`: Float) : Scalar<FloatFieldVal> {
 
 }
 
-class DoubleFieldVal(val `val`: Double) : Scalar<DoubleFieldVal> {
+class DoubleFieldVal(val `val`: Double) : Scalar/*<DoubleFieldVal>*/ {
     override val zero: DoubleFieldVal
         get() = DoubleFieldVal(0.0)
 
     override val one: DoubleFieldVal
         get() = DoubleFieldVal(1.0)
 
-    override fun multiplyBin(b: DoubleFieldVal): DoubleFieldVal = DoubleFieldVal(this.`val` * b.`val`)
+    override fun multiplyBin(b: FieldElement): DoubleFieldVal {
+        if (b !is FloatFieldVal) throw TypeError()
+        return DoubleFieldVal(this
+                .`val` * b.`val`)
+    }
 
-    override fun addBin(b: DoubleFieldVal): DoubleFieldVal = DoubleFieldVal(this.`val` + b.`val`)
+    override fun addBin(b: FieldElement): DoubleFieldVal {
+        if (b !is FloatFieldVal) throw TypeError()
+        return DoubleFieldVal(this.`val` + b
+                .`val`)
+    }
 
     override fun parse(string: String): DoubleFieldVal = DoubleFieldVal(parseDouble(string))
 
@@ -93,7 +119,7 @@ class DoubleFieldVal(val `val`: Double) : Scalar<DoubleFieldVal> {
 //8. Scalar multiplication identity:
 //1X=X.
 //(8)
-interface VectorSpace<VectorType : Vector<VectorType>, OnField : Scalar<*>> {
+interface VectorSpace<VectorType : Vector<VectorType>, OnField : Scalar/*<*>*/> {
     val scalarIdentity: OnField
     val vectorAdditiveIdentity: Vector<VectorType>
     fun inverse(v: VectorType): VectorType
@@ -136,7 +162,8 @@ class DoubleVectorSpace<Dim : SingleDimension>(val dim: Dim) : VectorSpace<Doubl
 /**
  * For multidimensional tensors use tensors of tensors. All tensors are integer indexed.
  */
-interface Tensor<Dim : SingleDimension, Of : AlgebraValue, UnderlyingScalar : Scalar<UnderlyingScalar>> : AlgebraValue {
+interface Tensor<Dim : SingleDimension, Of : AlgebraValue, UnderlyingScalar : Scalar/*<UnderlyingScalar>*/> :
+        AlgebraValue {
     infix fun at(i: Int): Of
 
 }
@@ -145,5 +172,5 @@ interface Tensor<Dim : SingleDimension, Of : AlgebraValue, UnderlyingScalar : Sc
 /**
  *
  */
-interface Matrix<Dim1 : SingleDimension, Dim2 : SingleDimension, OnScalar : Scalar<OnScalar>> :
+interface Matrix<Dim1 : SingleDimension, Dim2 : SingleDimension, OnScalar : Scalar/*<OnScalar>*/> :
         Tensor<Dim2, Tensor<Dim1, OnScalar, OnScalar>, OnScalar>
