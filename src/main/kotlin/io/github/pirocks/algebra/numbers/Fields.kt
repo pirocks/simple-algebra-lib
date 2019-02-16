@@ -105,7 +105,7 @@ interface VectorSpace<VectorType : Vector<VectorType>, OnField : Scalar<*>> {
 interface Vector<T : Vector<T>> : AlgebraValue
 
 class DoubleVector<Dim : SingleDimension>(val `val`: DoubleArray) : Vector<DoubleVector<Dim>>,
-        Tensor<Dim, DoubleFieldVal, DoubleFieldVal, DoubleVectorSpace<Dim>, DoubleVector<Dim>> {
+        Tensor<Dim, DoubleFieldVal, DoubleFieldVal> {
     override fun at(i: Int): DoubleFieldVal = DoubleFieldVal(`val`[i])
 }
 
@@ -136,8 +136,7 @@ class DoubleVectorSpace<Dim : SingleDimension>(val dim: Dim) : VectorSpace<Doubl
 /**
  * For multidimensional tensors use tensors of tensors. All tensors are integer indexed.
  */
-interface Tensor<Dim : SingleDimension, Of : AlgebraValue, UnderlyingScalar : Scalar<UnderlyingScalar>, UnderlyingVectorSpace : VectorSpace<VectorType, UnderlyingScalar>, VectorType : Vector<VectorType>> :
-        VectorSpace<VectorType, UnderlyingScalar> {
+interface Tensor<Dim : SingleDimension, Of : AlgebraValue, UnderlyingScalar : Scalar<UnderlyingScalar>> : AlgebraValue {
     infix fun at(i: Int): Of
 
 }
@@ -147,4 +146,4 @@ interface Tensor<Dim : SingleDimension, Of : AlgebraValue, UnderlyingScalar : Sc
  *
  */
 interface Matrix<Dim1 : SingleDimension, Dim2 : SingleDimension, OnScalar : Scalar<OnScalar>> :
-        Tensor<Dim2, Tensor<Dim1, DoubleFieldVal, OnScalar>, OnScalar>
+        Tensor<Dim2, Tensor<Dim1, OnScalar, OnScalar>, OnScalar>
