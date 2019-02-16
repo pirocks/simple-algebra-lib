@@ -1,21 +1,19 @@
 package io.github.pirocks.algebra
 
-import io.github.pirocks.algebra.numbers.FloatFieldVal
-
 /**
  * Provides a handful of useful abbreviations/ more concise names.
  */
 
 
-typealias Mul<T> = Multiplication<T>
+typealias Mul = Multiplication
 
-typealias Add<T> = Addition<T>
+typealias Add = Addition
 //public typealias Div = Division
-typealias `-`<T> = UMinus<T>
+typealias `-` = UMinus
 
-typealias `+`<T> = Addition<T>
-typealias `*`<T> = Multiplication<T>
+typealias `+` = Addition
+typealias `*` = Multiplication
 //public typealias `^` = Exponentiation
 
-val `0` = FloatFieldVal(0.0f).zero
-val `1` = FloatFieldVal(1.0f).one
+val `0` = Zero()
+val `1` = One()
