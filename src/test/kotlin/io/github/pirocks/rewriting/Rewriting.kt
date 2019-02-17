@@ -2,7 +2,6 @@ package io.github.pirocks.rewriting
 
 import io.github.pirocks.algebra.*
 import io.github.pirocks.algebra.equivalences.*
-import io.github.pirocks.algebra.numbers.FloatFieldVal
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

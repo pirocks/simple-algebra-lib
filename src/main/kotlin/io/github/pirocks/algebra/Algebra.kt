@@ -1,10 +1,10 @@
 package io.github.pirocks.algebra
 
 import io.github.pirocks.algebra.equivalences.MatchSubstitutions
-import io.github.pirocks.algebra.numbers.AlgebraValue
-import io.github.pirocks.algebra.numbers.DoubleFieldVal
-import io.github.pirocks.algebra.numbers.FieldElement
-import io.github.pirocks.algebra.numbers.TypeError
+import io.github.pirocks.algebra.values.AlgebraValue
+import io.github.pirocks.algebra.values.numbers.DoubleFieldVal
+import io.github.pirocks.algebra.values.numbers.FieldElement
+import io.github.pirocks.algebra.values.numbers.TypeError
 import java.io.Serializable
 import java.util.*
 
