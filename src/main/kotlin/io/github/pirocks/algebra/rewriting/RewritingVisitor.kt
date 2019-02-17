@@ -13,8 +13,7 @@ abstract class RewritingVisitor {
         }
     }
 
-    open fun rewriteFunctionApplication(
-            original: FunctionApplication): AlgebraFormula {
+    open fun rewriteFunctionApplication(original: FunctionApplication): AlgebraFormula {
         return original
     }
 
@@ -22,8 +21,8 @@ abstract class RewritingVisitor {
         return when (original) {
             is Addition -> rewriteAddition(original)
             is Multiplication -> rewriteMultiplication(original)
-//            is Division -> rewriteDivision(original)
-//            is Exponentiation -> rewriteExponentiation(original)
+            is Division -> rewriteDivision(original)
+            is Exponentiation -> rewriteExponentiation(original)
         }
     }
 
@@ -35,18 +34,18 @@ abstract class RewritingVisitor {
         return Multiplication(rewrite(original.left), rewrite(original.right))
     }
 
-//    open fun rewriteDivision(original: Division): AlgebraFormula {
-//        return Division(rewrite(original.left), rewrite(original.right))
-//    }
-//
-//    open fun rewriteExponentiation(original: Exponentiation): AlgebraFormula {
-//        return Exponentiation(rewrite(original.left), rewrite(original.right))
-//    }
+    open fun rewriteDivision(original: Division): AlgebraFormula {
+        return Division(rewrite(original.left), rewrite(original.right))
+    }
+
+    open fun rewriteExponentiation(original: Exponentiation): AlgebraFormula {
+        return Exponentiation(rewrite(original.left), rewrite(original.right))
+    }
 
     open fun rewriteUnaryFormula(original: UnaryFormula): AlgebraFormula {
         return when (original) {
-//            is NaturalLog -> rewriteNaturalLog(original)
-//            is Cos -> rewriteCos(original)
+            is NaturalLog -> rewriteNaturalLog(original)
+            is Cos -> rewriteCos(original)
             is UMinus -> {
                 val original1: UMinus = original
                 rewriteUMinus(original1)
@@ -58,21 +57,20 @@ abstract class RewritingVisitor {
         return UMinus(rewrite(original.parameter))
     }
 
-//    open fun rewriteNaturalLog(original: NaturalLog): AlgebraFormula {
-//        return NaturalLog(rewrite(original.parameter))
-//    }
-//
-//    open fun rewriteCos(original: Cos): AlgebraFormula {
-//        return Cos(rewrite(original.parameter))
-//    }
-//
-open fun rewriteConstant(original: Constant): AlgebraFormula {
-    return original
-}
+    open fun rewriteNaturalLog(original: NaturalLog): AlgebraFormula {
+        return NaturalLog(rewrite(original.parameter))
+    }
+
+    open fun rewriteCos(original: Cos): AlgebraFormula {
+        return Cos(rewrite(original.parameter))
+    }
+
+    open fun rewriteConstant(original: Constant): AlgebraFormula {
+        return original
+    }
 
     open fun rewriteVariable(original: Variable): AlgebraFormula {
-        if (original is PatternMember)
-            return rewritePatternMember(original)
+        if (original is PatternMember) return rewritePatternMember(original)
         return original
     }
 

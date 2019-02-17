@@ -2,8 +2,9 @@ package io.github.pirocks.algebra
 
 import io.github.pirocks.algebra.equivalences.MatchSubstitutions
 import io.github.pirocks.algebra.values.AlgebraValue
-import io.github.pirocks.algebra.values.numbers.DoubleFieldVal
+import io.github.pirocks.algebra.values.numbers.DoubleReal
 import io.github.pirocks.algebra.values.numbers.FieldElement
+import io.github.pirocks.algebra.values.numbers.Real
 import io.github.pirocks.algebra.values.numbers.TypeError
 import java.io.Serializable
 import java.util.*
@@ -92,21 +93,19 @@ internal class HashCodeContext {
     val variableToNum: MutableMap<VariableName, Int> = mutableMapOf()
 }
 
-sealed class Constant : AlgebraFormula() {
-    override val parameters: List<AlgebraFormula> = emptyList()
-}
-
 /**
  * Represents any constant.
  */
-open class DoublePrecisionConstant(val `val`: Double) : Constant() {
-    override fun eval(
-            variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
-        return DoubleFieldVal(`val`)
+sealed class Constant(val algebraValue: AlgebraValue) : AlgebraFormula() {
+    override val parameters: List<AlgebraFormula> = emptyList()
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
+        return algebraValue
     }
+}
 
+
+open class DoublePrecisionConstant(val `val`: Double) : Constant(DoubleReal(`val`)) {
     override fun toMathML2(): String = """<mn>$`val`</mn>"""
-
 
     override fun toPrefixNotation(): String = `val`.toString()
 
@@ -258,10 +257,12 @@ class Multiplication(left: AlgebraFormula, right: AlgebraFormula) : BinaryFormul
     override val operatorString: String = "*"
 }
 
-/*
-todo fields and division not a thing, so not supported atm.
-class Division(val numerator: AlgebraFormula<FieldElement>, val denominator: AlgebraFormula<FieldElement>) : BinaryFormula<FieldElement>(numerator, denominator) {
-    override fun eval(variableValues: Map<VariableName, AlgebraValue>): FieldElement = numerator.eval(variableValues) / denominator.eval(variableValues)
+class Division(val numerator: AlgebraFormula, val denominator: AlgebraFormula) : BinaryFormula(numerator, denominator) {
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): FieldElement {
+        val numerator = numerator.eval(variableValues) as? Real ?: throw TypeError()
+        val denominator = denominator.eval(variableValues) as? Real ?: throw TypeError()
+        return numerator.divide(denominator)
+    }
     override val operatorString: String = "/"
     override fun toMathML2(): String = """
         <mrow>
@@ -272,18 +273,17 @@ class Division(val numerator: AlgebraFormula<FieldElement>, val denominator: Alg
         </mrow>
     """
 }
-*/
 
-/*
-todo fields and exponentiation sorta not a thing, so not supported atm.
-
-class Exponentiation(val base: FieldElement, val exponent: FieldElement) : BinaryFormula<FieldElement>(base, exponent) {
-    override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue = Math.exp(Math.log(base.eval(variableValues)) * exponent.eval(variableValues))
+class Exponentiation(val base: AlgebraFormula, val exponent: AlgebraFormula) : BinaryFormula(base, exponent) {
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
+        val baseEval = base.eval(variableValues) as? Real ?: throw TypeError()
+        val expReal = exponent.eval(variableValues) as? Real ?: throw TypeError()
+        return expReal.exp(baseEval)
+    }
 
     override val operatorString: String = "^"
 
 }
-*/
 
 /**
  * Represents a formaula which has one formula, e.g. log, cos,sin, unary minus.
@@ -305,17 +305,23 @@ sealed class UnaryFormula(open val parameter: AlgebraFormula) : AlgebraFormula()
     override fun hashCodeImpl(hashCodeContext: HashCodeContext): Int = operatorString.hashCode() + 31 * parameter.hashCodeImpl(hashCodeContext)
 }
 
-//class NaturalLog(parameter: AlgebraFormula<*>) : UnaryFormula(parameter) {
-//    override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue = Math.log(parameter.eval(variableValues))
-//
-//    override val operatorString: String = "log"
-//}
-//
-//class Cos(parameter: AlgebraFormula<*>) : UnaryFormula(parameter) {
-//    override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue = Math.cos(parameter.eval(variableValues))
-//
-//    override val operatorString: String = "cos"
-//}
+class NaturalLog(parameter: AlgebraFormula) : UnaryFormula(parameter) {
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
+        val logParam = parameter.eval(variableValues) as? Real ?: throw TypeError()
+        return logParam.log()
+    }
+
+    override val operatorString: String = "log"
+}
+
+class Cos(parameter: AlgebraFormula) : UnaryFormula(parameter) {
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
+        val cosParam = parameter.eval(variableValues) as? Real ?: throw TypeError()
+        return cosParam.cos(degrees = false)
+    }
+
+    override val operatorString: String = "cos"
+}
 
 class UMinus(override val parameter: AlgebraFormula) : UnaryFormula(parameter) {
     override fun eval(
