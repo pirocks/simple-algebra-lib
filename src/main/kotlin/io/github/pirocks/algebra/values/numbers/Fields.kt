@@ -67,12 +67,12 @@ open class DoubleFieldVal(open val `val`: Double) : Scalar/*<DoubleFieldVal>*/ {
         get() = DoubleFieldVal(1.0)
 
     override fun multiplyBin(b: FieldElement): DoubleFieldVal {
-        if (b !is FloatFieldVal) throw TypeError()
+        if (b !is DoubleFieldVal) throw TypeError()
         return DoubleFieldVal(this.`val` * b.`val`)
     }
 
     override fun addBin(b: FieldElement): DoubleFieldVal {
-        if (b !is FloatFieldVal) throw TypeError()
+        if (b !is DoubleFieldVal) throw TypeError()
         return DoubleFieldVal(this.`val` + b.`val`)
     }
 

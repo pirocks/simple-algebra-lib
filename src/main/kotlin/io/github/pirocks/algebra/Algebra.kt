@@ -97,10 +97,23 @@ internal class HashCodeContext {
 /**
  * Represents any constant.
  */
-sealed class Constant(val algebraValue: AlgebraValue) : AlgebraFormula() {
+open class Constant(val algebraValue: AlgebraValue) : AlgebraFormula() {
     override val parameters: List<AlgebraFormula> = emptyList()
+
     override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
         return algebraValue
+    }
+
+    override fun hashCodeImpl(hashCodeContext: HashCodeContext): Int {
+        return 1
+    }
+
+    override fun toPrefixNotation(): String {
+        TODO("not implemented, use DoublePrecisionConstant for outputing prefix notation with numbers")
+    }
+
+    override fun toMathML2(): String {
+        TODO("not implemented, if you need to output mathml with constants, use DoublePrecisionConstant")
     }
 }
 
