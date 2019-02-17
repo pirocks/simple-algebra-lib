@@ -18,8 +18,7 @@ sealed class AlgebraFormula : Serializable {
      * Evaluates an expression based on a map of variable values. Currently only supports double precision arithmetic
      * @param variableValues variable values to evaluate with.
      */
-    abstract fun eval(
-            variableValues: Map<VariableName, AlgebraValue>): AlgebraValue
+    abstract fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue
 
     /**
      * Returns an array of any parameters/subformulas a AlegbraFormula can contain.
@@ -70,7 +69,9 @@ sealed class AlgebraFormula : Serializable {
             return false
         }
         if (other.parameters.size != parameters.size) return false
-        return parameters.zip(other.parameters).all { it.first.matches(it.second, matchContext) }
+        return parameters.zip(other.parameters).all {
+            it.first.matches(it.second, matchContext)
+        }
     }
 
     /**
@@ -127,8 +128,7 @@ class One : DoublePrecisionConstant(1.0)
 /**
  * Represents any operator with two parameters e.g. +,*,^,/, etc.
  */
-sealed class BinaryFormula(val left: AlgebraFormula,
-                           val right: AlgebraFormula) :
+sealed class BinaryFormula(val left: AlgebraFormula, val right: AlgebraFormula) :
         AlgebraFormula() {//todo maybe add overridable comon input type
     /**
      * String which represents this operator. Should be valid as the <mo> for mathml.
@@ -169,14 +169,11 @@ data class VariableName(val name: String = "" + getAndIncrementCounter(), val uu
  * Different from a VariableName, since VariableNames cannot appear in a formula AST.
  * @see VariableName
  */
-open class Variable(open val name: VariableName = VariableName()) :
-        AlgebraFormula() {
+open class Variable(open val name: VariableName = VariableName()) : AlgebraFormula() {
     override fun toMathML2(): String = """<mi>${name.name}</mi>"""
 
-    override fun eval(
-            variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
-        return variableValues[name]
-                ?: throw IllegalArgumentException("Not all variable values where provided")
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
+        return variableValues[name] ?: throw IllegalArgumentException("Not all variable values where provided")
     }
 
     override fun equalsImpl(other: AlgebraFormula, equalsContext: EqualsContext): Boolean {
@@ -230,12 +227,9 @@ class AllowAllVars : PatternMember() {
 }
 
 
-class Addition(left: AlgebraFormula, right: AlgebraFormula) :
-        BinaryFormula(left, right) {
-    override fun eval(
-            variableValues: Map<VariableName, AlgebraValue>): FieldElement {
-        val leftEval =
-                left.eval(variableValues) as? FieldElement ?: throw TypeError()
+class Addition(left: AlgebraFormula, right: AlgebraFormula) : BinaryFormula(left, right) {
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): FieldElement {
+        val leftEval = left.eval(variableValues) as? FieldElement ?: throw TypeError()
         val rightEval = right.eval(variableValues) as? FieldElement ?: throw
         TypeError()
         return (leftEval.addBin(rightEval))
@@ -245,8 +239,7 @@ class Addition(left: AlgebraFormula, right: AlgebraFormula) :
 }
 
 class Multiplication(left: AlgebraFormula, right: AlgebraFormula) : BinaryFormula(left, right) {
-    override fun eval(variableValues: Map<VariableName, AlgebraValue>):
-            FieldElement/*<*>*/ {
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): FieldElement/*<*>*/ {
         val leftEval = left.eval(variableValues) as? FieldElement ?: throw
         TypeError()
         val rightEval = right.eval(variableValues) as? FieldElement ?: throw
@@ -263,6 +256,7 @@ class Division(val numerator: AlgebraFormula, val denominator: AlgebraFormula) :
         val denominator = denominator.eval(variableValues) as? Real ?: throw TypeError()
         return numerator.divide(denominator)
     }
+
     override val operatorString: String = "/"
     override fun toMathML2(): String = """
         <mrow>
@@ -289,7 +283,6 @@ class Exponentiation(val base: AlgebraFormula, val exponent: AlgebraFormula) : B
  * Represents a formaula which has one formula, e.g. log, cos,sin, unary minus.
  */
 sealed class UnaryFormula(open val parameter: AlgebraFormula) : AlgebraFormula() {
-    override val parameters: List<AlgebraFormula> = listOf(parameter)
     abstract val operatorString: String
     override fun toPrefixNotation(): String = """(${operatorString} ${parameter.toPrefixNotation()})"""
     override fun toMathML2(): String = """
@@ -312,6 +305,7 @@ class NaturalLog(parameter: AlgebraFormula) : UnaryFormula(parameter) {
     }
 
     override val operatorString: String = "log"
+    override val parameters: List<AlgebraFormula> = listOf(parameter)
 }
 
 class Cos(parameter: AlgebraFormula) : UnaryFormula(parameter) {
@@ -321,17 +315,17 @@ class Cos(parameter: AlgebraFormula) : UnaryFormula(parameter) {
     }
 
     override val operatorString: String = "cos"
+    override val parameters: List<AlgebraFormula> = listOf(parameter)
 }
 
 class UMinus(override val parameter: AlgebraFormula) : UnaryFormula(parameter) {
-    override fun eval(
-            variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
-        val parqameterEval = parameter.eval(variableValues) as? FieldElement
-                ?: throw TypeError()
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
+        val parqameterEval = parameter.eval(variableValues) as? FieldElement ?: throw TypeError()
         return parqameterEval.inverse()
     }
 
     override val operatorString: String = "-"
+    override val parameters: List<AlgebraFormula> = listOf(parameter)
 }
 
 /**
@@ -351,8 +345,7 @@ class FunctionApplication(override val parameters: List<AlgebraFormula>, val fun
         return super.equalsImpl(other, equalsContext)
     }
 
-    override fun eval(
-            variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
+    override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
         return function.func(parameters.map { it.eval(variableValues) })
     }
 
@@ -373,9 +366,7 @@ class FunctionApplication(override val parameters: List<AlgebraFormula>, val fun
  * @param func a lambda which evaluates the function in question
  * @param name for the function in question.
  */
-data class AlgebraFunction(val func: (List<AlgebraValue>) -> AlgebraValue,
-                           val name:
-                           FunctionName = FunctionName())
+data class AlgebraFunction(val func: (List<AlgebraValue>) -> AlgebraValue, val name: FunctionName = FunctionName())
 
 data class FunctionName(val name: String = "" + FunctionName.getAndIncrementCounter(), val uuid: UUID = UUID.randomUUID()) {
     companion object {
