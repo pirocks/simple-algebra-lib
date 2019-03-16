@@ -47,6 +47,8 @@ interface Vector<T : Vector<T>> : AlgebraValue
 
 class DoubleVector<Dim : SingleDimension>(val `val`: DoubleArray) : Vector<DoubleVector<Dim>>,
         Tensor<Dim, DoubleFieldVal, DoubleFieldVal> {
+    override fun toPrefixNotation(): String = """(Vector ${`val`.toList().joinToString(separator = " ") { it.toString() }})""".trimIndent()
+
     override fun at(i: Int): DoubleFieldVal = DoubleFieldVal(`val`[i])
 }
 

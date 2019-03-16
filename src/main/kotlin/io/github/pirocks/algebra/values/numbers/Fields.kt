@@ -37,6 +37,8 @@ interface FieldElement/*<ElementType : FieldElement<ElementType>>*/ : AlgebraVal
 interface Scalar/*<T: FieldElement<T>>*/ : FieldElement/*<T>*/
 
 open class FloatFieldVal(open val `val`: Float) : Scalar/*<FloatFieldVal>*/ {
+    override fun toPrefixNotation(): String = "${`val`}"
+
     override val zero: FloatFieldVal
         get() = FloatFieldVal(0.0f)
 
@@ -60,6 +62,7 @@ open class FloatFieldVal(open val `val`: Float) : Scalar/*<FloatFieldVal>*/ {
 }
 
 open class DoubleFieldVal(open val `val`: Double) : Scalar/*<DoubleFieldVal>*/ {
+    override fun toPrefixNotation(): String = "${`val`}"
     override val zero: DoubleFieldVal
         get() = DoubleFieldVal(0.0)
 

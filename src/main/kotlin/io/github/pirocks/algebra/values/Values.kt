@@ -1,3 +1,5 @@
 package io.github.pirocks.algebra.values
 
-interface AlgebraValue
+interface AlgebraValue {
+    fun toPrefixNotation(): String
+}

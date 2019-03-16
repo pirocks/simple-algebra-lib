@@ -86,6 +86,8 @@ sealed class AlgebraFormula : Serializable {
      * @see io.github.pirocks.algebra.AlgebraFormula.toMathML2
      */
     fun toHtml(): String = ("<math> <mrow>" + toMathML2() + "</mrow> </math>").replace("\\s(?!separators)".toRegex(), "").trim().trimIndent()
+
+
 }
 
 internal class EqualsContext(val thisToOtherVariableName: MutableMap<VariableName, VariableName> = mutableMapOf())
@@ -109,7 +111,7 @@ open class Constant(val algebraValue: AlgebraValue) : AlgebraFormula() {
     }
 
     override fun toPrefixNotation(): String {
-        TODO("not implemented, use DoublePrecisionConstant for outputing prefix notation with numbers")
+        return algebraValue.toPrefixNotation()
     }
 
     override fun toMathML2(): String {

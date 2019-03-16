@@ -21,7 +21,6 @@ interface Real : FieldElement {
 
 //todo ugly duplication with DoubleReal
 class FloatReal(override val `val`: Float) : FloatFieldVal(`val`), Real {
-
     override val zero: FloatReal
         get() = FloatReal(0.0f)
     override val one: FloatReal

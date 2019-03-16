@@ -3,6 +3,8 @@ package io.github.pirocks.algebra.values.numbers
 interface Complex : FieldElement {
     val re: Real
     val im: Real
+
+    override fun toPrefixNotation(): String = "(+ ${re.toPrefixNotation()} (* I ${im.toPrefixNotation()}))"
 }
 
 //todo ugly duplication
