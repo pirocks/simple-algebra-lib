@@ -1,5 +1,7 @@
 package io.github.pirocks.algebra.values
 
-interface AlgebraValue {
+import java.io.Serializable
+
+interface AlgebraValue : Serializable{
     fun toPrefixNotation(): String
 }

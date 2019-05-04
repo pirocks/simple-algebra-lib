@@ -6,6 +6,9 @@ import io.github.pirocks.algebra.values.numbers.DoubleReal
 import io.github.pirocks.algebra.values.numbers.FieldElement
 import io.github.pirocks.algebra.values.numbers.Real
 import io.github.pirocks.algebra.values.numbers.TypeError
+import kotlinx.serialization.*
+import kotlinx.serialization.internal.HexConverter
+import kotlinx.serialization.internal.StringDescriptor
 import java.io.Serializable
 import java.util.*
 
@@ -99,7 +102,10 @@ internal class HashCodeContext {
 /**
  * Represents any constant.
  */
+@kotlinx.serialization.Serializable
 open class Constant(val algebraValue: AlgebraValue) : AlgebraFormula() {
+
+
     override val parameters: List<AlgebraFormula> = emptyList()
 
     override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
@@ -119,8 +125,22 @@ open class Constant(val algebraValue: AlgebraValue) : AlgebraFormula() {
     }
 }
 
-
+@kotlinx.serialization.Serializable
 open class DoublePrecisionConstant(val `val`: Double) : Constant(DoubleReal(`val`)) {
+    @Serializer(forClass = DoublePrecisionConstant::class)
+    object DoublePrecisionConstantSerializer : KSerializer<DoublePrecisionConstant> {
+        override val descriptor: SerialDescriptor =
+                StringDescriptor.withName("DoublePrecisionConstant")
+
+        override fun serialize(encoder: Encoder, obj: DoublePrecisionConstant) {
+            encoder.encodeDouble(obj.`val`)
+        }
+
+        override fun deserialize(decoder: Decoder): DoublePrecisionConstant {
+            return DoublePrecisionConstant(decoder.decodeDouble())
+        }
+    }
+
     override fun toMathML2(): String = """<mn>$`val`</mn>"""
 
     override fun toPrefixNotation(): String = `val`.toString()
@@ -169,12 +189,30 @@ sealed class BinaryFormula(val left: AlgebraFormula, val right: AlgebraFormula) 
  * todo add a name index?
  * @see FunctionName
  */
+@kotlinx.serialization.Serializable
 data class VariableName(val name: String = "" + getAndIncrementCounter(), val uuid: UUID = UUID.randomUUID()) {
     companion object {
         var varCounter = 0
         fun getAndIncrementCounter(): Int {
             varCounter += 1
             return varCounter
+        }
+    }
+
+    @Serializer(forClass = VariableName::class)
+    object VariableNameSerializer : KSerializer<VariableName> {
+        override val descriptor: SerialDescriptor =
+                StringDescriptor.withName("VariableName")
+
+        @ImplicitReflectionSerializer
+        override fun serialize(encoder: Encoder, obj: VariableName) {
+            encoder.encode(obj.name)
+            encoder.encode(obj.uuid)
+        }
+
+        @ImplicitReflectionSerializer
+        override fun deserialize(decoder: Decoder): VariableName {
+            return VariableName(decoder.decodeString(),decoder.decode())
         }
     }
 }
@@ -184,7 +222,25 @@ data class VariableName(val name: String = "" + getAndIncrementCounter(), val uu
  * Different from a VariableName, since VariableNames cannot appear in a formula AST.
  * @see VariableName
  */
+@kotlinx.serialization.Serializable
 open class Variable(open val name: VariableName = VariableName()) : AlgebraFormula() {
+
+    @Serializer(forClass = Variable::class)
+    object VariableSerializer: KSerializer<Variable> {
+        override val descriptor: SerialDescriptor =
+                StringDescriptor.withName("Variable")
+
+        @ImplicitReflectionSerializer
+        override fun serialize(encoder: Encoder, obj: Variable) {
+            encoder.encode(obj.name)
+        }
+
+        @ImplicitReflectionSerializer
+        override fun deserialize(decoder: Decoder): Variable {
+            return Variable(decoder.decode())
+        }
+    }
+
     override fun toMathML2(): String = """<mi>${name.name}</mi>"""
 
     override fun eval(variableValues: Map<VariableName, AlgebraValue>): AlgebraValue {
@@ -241,12 +297,30 @@ class AllowAllVars : PatternMember() {
     }
 }
 
-
+@kotlinx.serialization.Serializable
 class Addition(left: AlgebraFormula, right: AlgebraFormula) : BinaryFormula(left, right) {
+    @Serializer(forClass = Addition::class)
+    object AdditionSerializer : KSerializer<Addition>{
+        override val descriptor: SerialDescriptor
+            get() = StringDescriptor.withName("Addition")
+
+        @ImplicitReflectionSerializer
+        override fun deserialize(decoder: Decoder): Addition {
+            val left = decoder.decode<AlgebraFormula>()
+            val right = decoder.decode<AlgebraFormula>()
+            return Addition(left, right)
+        }
+
+        @ImplicitReflectionSerializer
+        override fun serialize(encoder: Encoder, obj: Addition) {
+            encoder.encode(obj.left)
+            encoder.encode(obj.right)
+        }
+    }
+
     override fun eval(variableValues: Map<VariableName, AlgebraValue>): FieldElement {
         val leftEval = left.eval(variableValues) as? FieldElement ?: throw TypeError()
-        val rightEval = right.eval(variableValues) as? FieldElement ?: throw
-        TypeError()
+        val rightEval = right.eval(variableValues) as? FieldElement ?: throw TypeError()
         return (leftEval.addBin(rightEval))
     }
 
